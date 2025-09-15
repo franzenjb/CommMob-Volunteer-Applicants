@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CommMob Data Processor</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏥 CommMob Data Processor</h1>
+            <p>Process and merge volunteer/applicant data for ArcGIS feature layers</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="status-item">
+                <span class="status-label">Master Applicants:</span>
+                <span id="master-applicants-count" class="status-value">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Master Volunteers:</span>
+                <span id="master-volunteers-count" class="status-value">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">New Applicants:</span>
+                <span id="new-applicants-count" class="status-value">-</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">New Volunteers:</span>
+                <span id="new-volunteers-count" class="status-value">-</span>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="upload-section">
+                <h2>📁 Upload New Data Files</h2>
+                <div class="upload-areas">
+                    <div class="upload-area" id="applicants-upload">
+                        <div class="upload-content">
+                            <div class="upload-icon">📄</div>
+                            <h3>Applicants Data</h3>
+                            <p>Drag & drop or click to select</p>
+                            <input type="file" id="applicants-file" accept=".csv" hidden>
+                        </div>
+                        <div class="file-info" id="applicants-file-info"></div>
+                    </div>
+                    <div class="upload-area" id="volunteers-upload">
+                        <div class="upload-content">
+                            <div class="upload-icon">👥</div>
+                            <h3>Volunteers Data</h3>
+                            <p>Drag & drop or click to select</p>
+                            <input type="file" id="volunteers-file" accept=".csv" hidden>
+                        </div>
+                        <div class="file-info" id="volunteers-file-info"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="processing-section">
+                <h2>⚙️ Processing Options</h2>
+                <div class="processing-options">
+                    <div class="option-group">
+                        <label>
+                            <input type="checkbox" id="skip-header-rows" checked>
+                            Skip header rows (recommended for NEIA files)
+                        </label>
+                    </div>
+                    <div class="option-group">
+                        <label>
+                            <input type="checkbox" id="validate-data" checked>
+                            Validate data structure before processing
+                        </label>
+                    </div>
+                    <div class="option-group">
+                        <label>
+                            <input type="checkbox" id="backup-files" checked>
+                            Create backup of master files
+                        </label>
+                    </div>
+                </div>
+                <button id="process-btn" class="process-btn" disabled>🔄 Process Data</button>
+            </div>
+
+            <div class="results-section" id="results-section" style="display: none;">
+                <h2>📊 Processing Results</h2>
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>Before Processing</h3>
+                        <div class="count-display">
+                            <div class="count-item">
+                                <span class="count-label">Master Applicants:</span>
+                                <span id="before-applicants-count" class="count-value">-</span>
+                            </div>
+                            <div class="count-item">
+                                <span class="count-label">Master Volunteers:</span>
+                                <span id="before-volunteers-count" class="count-value">-</span>
+                            </div>
+                            <div class="count-item">
+                                <span class="count-label">New Applicants:</span>
+                                <span id="before-new-applicants-count" class="count-value">-</span>
+                            </div>
+                            <div class="count-item">
+                                <span class="count-label">New Volunteers:</span>
+                                <span id="before-new-volunteers-count" class="count-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="result-card">
+                        <h3>After Processing</h3>
+                        <div class="count-display">
+                            <div class="count-item">
+                                <span class="count-label">Updated Applicants:</span>
+                                <span id="after-applicants-count" class="count-value">-</span>
+                            </div>
+                            <div class="count-item">
+                                <span class="count-label">Updated Volunteers:</span>
+                                <span id="after-volunteers-count" class="count-value">-</span>
+                            </div>
+                            <div class="count-item">
+                                <span class="count-label">Validation Status:</span>
+                                <span id="validation-status" class="count-value">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="download-section">
+                    <h3>📥 Download Processed Files</h3>
+                    <div class="download-buttons">
+                        <button id="download-applicants" class="download-btn" disabled>
+                            📄 Download Applicants 2025.csv
+                        </button>
+                        <button id="download-volunteers" class="download-btn" disabled>
+                            👥 Download Volunteer 2025.csv
+                        </button>
+                    </div>
+                </div>
+
+                <div class="preview-section">
+                    <h3>👀 Preview Data</h3>
+                    <div class="preview-tabs">
+                        <button class="tab-btn active" data-tab="applicants-preview">Applicants</button>
+                        <button class="tab-btn" data-tab="volunteers-preview">Volunteers</button>
+                    </div>
+                    <div class="preview-content">
+                        <div id="applicants-preview" class="preview-tab-content active">
+                            <div class="preview-table-container">
+                                <table id="applicants-preview-table">
+                                    <thead></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div id="volunteers-preview" class="preview-tab-content">
+                            <div class="preview-table-container">
+                                <table id="volunteers-preview-table">
+                                    <thead></thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="log-section">
+            <h3>📝 Processing Log</h3>
+            <div id="log-content" class="log-content"></div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
