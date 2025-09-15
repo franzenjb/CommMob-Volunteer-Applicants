@@ -27,22 +27,44 @@ New data comes in these formats:
 
 ### ⚠️ CRITICAL PREPROCESSING REQUIREMENTS
 
-**BEFORE uploading files to the web application, users MUST:**
+**BEFORE uploading files to the web application, users MUST follow these EXACT steps:**
 
-1. **Delete All Unnecessary Header Rows** 
-   - Remove rows 1-8 that contain metadata and descriptions
-   - Keep ONLY the actual data headers (row 9) and data rows (row 10+)
-   - The application expects clean CSV files with headers in row 1
+#### **STEP 1: DELETE EXCESS HEADER ROWS** 
+**⚠️ MANDATORY - The application will FAIL without this step**
 
-2. **Geocode All Addresses**
-   - Use your preferred geocoding service (Geocodio, Google Maps, ArcGIS, etc.)
-   - Add `x` and `y` coordinate columns to your data
-   - Master files require latitude/longitude coordinates for ArcGIS integration
-   - **Note:** Geocoding often provides more accurate addresses, zip codes, and county names
+1. **Open your NEIA files** (e.g., `NEIA Applicants 9 25.csv`)
+2. **Delete rows 1-8** that contain:
+   - "American Red Cross - Created by Volunteer Connection"
+   - "Data from last night: [date]"
+   - "Applicant Listing - Applications between [dates]"
+   - "Region: [Region Name]"
+   - Various description rows
+3. **Keep ONLY row 9** (actual headers) and rows 10+ (data)
+4. **Move row 9 to row 1** (headers must be in first row)
+5. **Save the cleaned file**
 
-3. **Use Post-Geocode Files**
-   - Upload files with `_geocodio` suffix (or similar geocoding service suffix)
-   - These files contain the geocoded coordinates and improved address data
+#### **STEP 2: GEOCODE WITH GEOCODIO**
+**⚠️ MANDATORY - Required for ArcGIS integration**
+
+1. **Go to [Geocodio.com](https://www.geocod.io/)**
+2. **Upload your cleaned CSV file**
+3. **Select appropriate address columns** (Address, City, State, Zip)
+4. **Run the geocoding process**
+5. **Download the results** - this will have `_geocodio` suffix
+6. **Verify coordinates were added** (Longitude, Latitude columns)
+
+#### **STEP 3: UPLOAD _GEOCODIO FILES TO APPLICATION**
+**⚠️ MANDATORY - Only _geocodio files work properly**
+
+1. **Use the files with `_geocodio` suffix** (e.g., `NEIA Applicants 9 25_geocodio.csv`)
+2. **Do NOT upload raw NEIA files** - they will cause processing errors
+3. **The application expects geocoded files** with coordinates
+
+### **❌ COMMON MISTAKES TO AVOID:**
+- ❌ Uploading raw NEIA files without header cleanup
+- ❌ Uploading files without geocoding
+- ❌ Uploading files without `_geocodio` suffix
+- ❌ Leaving multiple header rows in the file
 
 ### Common Data Issues with NEIA Files
 - **Multiple header rows** (8-9 rows before actual data) - **MUST BE REMOVED FIRST**
@@ -115,18 +137,22 @@ The application is deployed on GitHub Pages and available at:
 - **Processing Log**: Detailed log of all operations
 
 ### How to Use
-1. **Preprocess your data** (REQUIRED):
-   - Delete unnecessary header rows from NEIA files
-   - Geocode all addresses using Geocodio or similar service
-   - Ensure clean CSV format with headers in row 1
-   - Save files with `_geocodio` suffix
-2. Open the web application in your browser
-3. Drag and drop your **post-geocode** files (with `_geocodio` suffix)
-4. Review the processing options
-5. Click "Process Data" to merge and standardize the files
-6. Review the before/after counts and validation results
-7. Download the updated master files (`Applicants 2025.csv` and `Volunteers 2025.csv`)
-8. Upload to ArcGIS to overwrite your hosted feature layers
+
+#### **PREPROCESSING (REQUIRED BEFORE USING APPLICATION):**
+1. **Delete excess header rows** from NEIA files (rows 1-8)
+2. **Geocode addresses** using [Geocodio.com](https://www.geocod.io/)
+3. **Download _geocodio files** with coordinates
+4. **Verify file structure** (headers in row 1, coordinates present)
+
+#### **APPLICATION WORKFLOW:**
+1. **Open the web application** in your browser
+2. **Drag and drop your _geocodio files** (NOT raw NEIA files)
+3. **Review the processing options** (skip header rows should be checked)
+4. **Click "Process Data"** to merge and standardize the files
+5. **Review the before/after counts** and validation results
+6. **Check chapter assignment statistics** in the processing report
+7. **Download the updated master files** (`Applicants 2025.csv` and `Volunteers 2025.csv`)
+8. **Upload to ArcGIS** to overwrite your hosted feature layers
 
 ### Safety Features
 - **Row Count Validation**: Ensures no data is lost during processing
@@ -134,6 +160,7 @@ The application is deployed on GitHub Pages and available at:
 - **Preview Before Download**: See exactly what the final files contain
 - **Processing Log**: Complete audit trail of all operations
 - **Preprocessing Validation**: Expects clean, geocoded input files
+- **Chapter Assignment**: Automatic assignment of missing chapters based on location
 
 ### ⚠️ Important Notes
 - **No Duplicate Removal**: Application preserves all data (no deduplication)
@@ -142,6 +169,15 @@ The application is deployed on GitHub Pages and available at:
 - **Post-Geocode Files**: Use files with `_geocodio` suffix after geocoding
 - **Exact Structure Match**: Output files must match master file structure exactly for ArcGIS
 - **Improved Data**: Geocoding often provides more accurate addresses, zip codes, and county names
+- **Chapter Assignment**: Missing chapters automatically assigned based on county/state (high confidence only)
+
+### 🎯 Current System Capabilities
+- **Handles 117K+ records** with high performance
+- **50+ county mappings** across 9 states for chapter assignment
+- **Robust column mapping** for 53+ column structures
+- **Batch processing** prevents UI freezing on large datasets
+- **Comprehensive reporting** with chapter assignment statistics
+- **ArcGIS-ready output** with exact structure matching
 
 `
 
