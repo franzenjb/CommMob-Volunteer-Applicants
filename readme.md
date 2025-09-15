@@ -1,33 +1,8 @@
 # CommMob Volunteer Applicants
 
-## Overview
-This repository manages volunteer and applicant data for CommMob, with automated processing to maintain ArcGIS feature layers.
+## 🚨 **CRITICAL: READ THIS FIRST BEFORE USING THE APPLICATION**
 
-## Master Files
-The core files that must maintain consistent structure for ArcGIS integration:
-
-- **`Applicants 2025.csv`** - Master applicants file
-- **`Volunteer 2025.csv`** - Master volunteers file
-
-**Critical Requirements:**
-- These files must always have the exact same names
-- Column headers and structure must remain consistent
-- Used to overwrite ArcGIS feature layers
-
-## Data Processing Workflow
-
-### Input Files
-New data comes in these formats:
-- **Raw NEIA files** (examples in repository):
-  - `NEIA Applicants 9 25.csv`
-  - `NEIA Volunteers 9 25.csv`
-- **Post-geocode files** (processed with geocoding service):
-  - `NEIA Applicants 9 25_geocodio.csv`
-  - `NEIA Volunteers 9 25_geocodio.csv`
-
-### ⚠️ CRITICAL PREPROCESSING REQUIREMENTS
-
-**BEFORE uploading files to the web application, users MUST follow these EXACT steps:**
+### **⚠️ MANDATORY PREPROCESSING STEPS - APPLICATION WILL FAIL WITHOUT THESE:**
 
 #### **STEP 1: DELETE EXCESS HEADER ROWS** 
 **⚠️ MANDATORY - The application will FAIL without this step**
@@ -65,6 +40,36 @@ New data comes in these formats:
 - ❌ Uploading files without geocoding
 - ❌ Uploading files without `_geocodio` suffix
 - ❌ Leaving multiple header rows in the file
+
+---
+
+## Overview
+This repository manages volunteer and applicant data for CommMob, with automated processing to maintain ArcGIS feature layers.
+
+## Master Files
+The core files that must maintain consistent structure for ArcGIS integration:
+
+- **`Applicants 2025.csv`** - Master applicants file
+- **`Volunteer 2025.csv`** - Master volunteers file
+
+**Critical Requirements:**
+- These files must always have the exact same names
+- Column headers and structure must remain consistent
+- Used to overwrite ArcGIS feature layers
+
+## Data Processing Workflow
+
+### Input Files
+New data comes in these formats:
+- **Raw NEIA files** (examples in repository):
+  - `NEIA Applicants 9 25.csv`
+  - `NEIA Volunteers 9 25.csv`
+- **Post-geocode files** (processed with geocoding service):
+  - `NEIA Applicants 9 25_geocodio.csv`
+  - `NEIA Volunteers 9 25_geocodio.csv`
+
+### Preprocessing Summary
+**See the critical preprocessing steps at the top of this README before using the application.**
 
 ### Common Data Issues with NEIA Files
 - **Multiple header rows** (8-9 rows before actual data) - **MUST BE REMOVED FIRST**
