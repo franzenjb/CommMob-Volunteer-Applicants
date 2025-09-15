@@ -228,15 +228,32 @@ class CommMobDataProcessor {
         
         // Get master headers
         const masterHeaders = Object.keys(masterData[0] || {});
+        this.log(`Master headers count: ${masterHeaders.length}`, 'info');
+        
+        // Log first few headers for debugging
+        if (masterHeaders.length > 0) {
+            this.log(`Sample master headers: ${masterHeaders.slice(0, 5).join(', ')}`, 'info');
+        }
+        
+        // Log new data structure
+        if (newData.length > 0) {
+            const newHeaders = Object.keys(newData[0] || {});
+            this.log(`New data headers count: ${newHeaders.length}`, 'info');
+            this.log(`Sample new headers: ${newHeaders.slice(0, 5).join(', ')}`, 'info');
+        }
         
         // Standardize new data headers to match master
         const standardizedNewData = newData.map(row => {
             const standardizedRow = {};
             masterHeaders.forEach(header => {
-                // Try to find matching column (case insensitive)
-                const matchingKey = Object.keys(row).find(key => 
-                    key.toLowerCase().trim() === header.toLowerCase().trim()
-                );
+                // Try to find matching column (case insensitive, handle quotes and special chars)
+                const cleanHeader = header.toLowerCase().trim().replace(/["'"]/g, '');
+                const matchingKey = Object.keys(row).find(key => {
+                    const cleanKey = key.toLowerCase().trim().replace(/["'"]/g, '');
+                    return cleanKey === cleanHeader || 
+                           cleanKey.includes(cleanHeader) || 
+                           cleanHeader.includes(cleanKey);
+                });
                 standardizedRow[header] = matchingKey ? row[matchingKey] : '';
             });
             return standardizedRow;
@@ -244,20 +261,23 @@ class CommMobDataProcessor {
 
         // Combine data
         const combinedData = [...masterData, ...standardizedNewData];
+        this.log(`Combined data count: ${combinedData.length}`, 'info');
         
-        // Remove duplicates based on key fields
-        const deduplicatedData = this.removeDuplicates(combinedData, type);
+        // Skip duplicate removal to prevent data loss
+        // const deduplicatedData = this.removeDuplicates(combinedData, type);
         
-        this.log(`Merged ${type}: ${masterData.length} + ${newData.length} = ${deduplicatedData.length} (${masterData.length + newData.length - deduplicatedData.length} duplicates removed)`, 'info');
+        this.log(`Merged ${type}: ${masterData.length} + ${newData.length} = ${combinedData.length} (no duplicates removed)`, 'info');
         
-        return deduplicatedData;
+        return combinedData;
     }
 
     removeDuplicates(data, type) {
         const seen = new Set();
+        
+        // Use more specific key fields for better duplicate detection
         const keyFields = type === 'applicants' 
-            ? ['Email Address', 'Phone Numbers', 'account_id'] 
-            : ['Email', 'account_id', 'Member #'];
+            ? ['account_id', 'Email Address', 'Phone Numbers'] 
+            : ['account_id', 'Email', 'Member #'];
 
         return data.filter(row => {
             // Create a unique key based on available fields
@@ -265,6 +285,11 @@ class CommMobDataProcessor {
                 const value = row[field];
                 return value ? value.toString().toLowerCase().trim() : '';
             }).filter(v => v).join('|');
+
+            // Only remove if we have a meaningful key (not empty)
+            if (!key) {
+                return true; // Keep rows without identifying information
+            }
 
             if (seen.has(key)) {
                 return false;
