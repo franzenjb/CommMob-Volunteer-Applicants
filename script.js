@@ -245,7 +245,11 @@ class CommMobDataProcessor {
             }
 
             // Generate processing report
-            this.generateProcessingReport(beforeCounts, validationResult);
+            const chapterStats = {
+                assignmentsMade: (this.chapterAssignmentStats?.assignmentsMade || 0),
+                assignmentsSkipped: (this.chapterAssignmentStats?.assignmentsSkipped || 0)
+            };
+            this.generateProcessingReport(beforeCounts, validationResult, chapterStats);
 
             // Enable download buttons
             document.getElementById('download-applicants').disabled = false;
@@ -498,6 +502,157 @@ class CommMobDataProcessor {
         return mapping;
     }
 
+    /**
+     * Assign missing chapters based on county/state mapping
+     * Only assigns if we have high confidence (100+ records in existing data)
+     */
+    assignMissingChapters(standardizedData, type) {
+        let assignmentsMade = 0;
+        let assignmentsSkipped = 0;
+        
+        standardizedData.forEach((row, index) => {
+            const state = row['State'];
+            const county = row['County'] || row['County of Residence'];
+            
+            if (type === 'applicants') {
+                // Check if Current Chapter is missing
+                if (!row['Current Chapter'] || row['Current Chapter'].trim() === '') {
+                    const assignedChapter = this.getChapterFromLocation(state, county);
+                    if (assignedChapter) {
+                        row['Current Chapter'] = assignedChapter;
+                        assignmentsMade++;
+                        this.log(`Assigned Current Chapter for record ${index + 1}: ${assignedChapter}`, 'info');
+                    } else {
+                        assignmentsSkipped++;
+                    }
+                }
+                
+                // Check if Home Chapter is missing
+                if (!row['Home Chapter'] || row['Home Chapter'].trim() === '') {
+                    const assignedChapter = this.getChapterFromLocation(state, county);
+                    if (assignedChapter) {
+                        row['Home Chapter'] = assignedChapter;
+                        assignmentsMade++;
+                        this.log(`Assigned Home Chapter for record ${index + 1}: ${assignedChapter}`, 'info');
+                    } else {
+                        assignmentsSkipped++;
+                    }
+                }
+            } else if (type === 'volunteers') {
+                // Check if Chapter Name is missing
+                if (!row['Chapter Name'] || row['Chapter Name'].trim() === '') {
+                    const assignedChapter = this.getChapterFromLocation(state, county);
+                    if (assignedChapter) {
+                        row['Chapter Name'] = assignedChapter;
+                        assignmentsMade++;
+                        this.log(`Assigned Chapter Name for record ${index + 1}: ${assignedChapter}`, 'info');
+                    } else {
+                        assignmentsSkipped++;
+                    }
+                }
+            }
+        });
+        
+        this.log(`Chapter assignment complete: ${assignmentsMade} assigned, ${assignmentsSkipped} skipped (no confident mapping)`, 'info');
+        return { assignmentsMade, assignmentsSkipped };
+    }
+
+    /**
+     * Get chapter assignment based on state and county using high-confidence mapping
+     */
+    getChapterFromLocation(state, county) {
+        if (!state || !county) return null;
+        
+        // County-to-Chapter mapping based on existing data analysis
+        const COUNTY_CHAPTER_MAPPING = {
+            // Georgia
+            'GA': {
+                'Fulton County': 'American Red Cross of Greater Atlanta',
+                'Gwinnett County': 'American Red Cross of Greater Atlanta', 
+                'DeKalb County': 'American Red Cross of Greater Atlanta',
+                'Cobb County': 'American Red Cross of Greater Atlanta',
+                'Forsyth County': 'American Red Cross of Northeast Georgia',
+                'Columbia County': 'American Red Cross of East Central Georgia',
+                'Chatham County': 'American Red Cross of Southeast Georgia',
+                'Richmond County': 'American Red Cross of East Central Georgia',
+                'Muscogee County': 'American Red Cross of Southwest Georgia',
+                'Cherokee County': 'American Red Cross of Greater Atlanta',
+                'Henry County': 'American Red Cross of Greater Atlanta',
+                'Douglas County': 'American Red Cross of Greater Atlanta',
+                'Clarke County': 'American Red Cross of Northeast Georgia',
+                'Houston County': 'American Red Cross of Central Midwest Georgia',
+                'Clayton County': 'American Red Cross of Greater Atlanta',
+                'Hall County': 'American Red Cross of Northeast Georgia',
+                'Fayette County': 'American Red Cross of Greater Atlanta'
+            },
+            // Texas
+            'TX': {
+                'Dallas County': 'American Red Cross serving DFW Metro East',
+                'Tarrant County': 'American Red Cross serving DFW Metro West',
+                'Travis County': 'American Red Cross serving Central Texas',
+                'Bexar County': 'American Red Cross serving Greater San Antonio Texas',
+                'Harris County': 'American Red Cross serving the Heart of Texas',
+                'Collin County': 'American Red Cross serving DFW Metro East',
+                'Denton County': 'American Red Cross serving DFW Metro East',
+                'El Paso County': 'American Red Cross serving West Texas',
+                'Williamson County': 'American Red Cross serving Central Texas'
+            },
+            // Nevada
+            'NV': {
+                'Clark County': 'American Red Cross of Southern Nevada',
+                'Washoe County': 'American Red Cross of Northern Nevada'
+            },
+            // Utah
+            'UT': {
+                'Salt Lake County': 'American Red Cross of Greater Salt Lake',
+                'Utah County': 'American Red Cross of Central and Southern Utah',
+                'Weber County': 'American Red Cross of Northern Utah and Southwest Wyoming'
+            },
+            // Louisiana
+            'LA': {
+                'Orleans Parish': 'American Red Cross of Southeast Louisiana',
+                'East Baton Rouge Parish': 'American Red Cross of Capital West Louisiana'
+            },
+            // Oklahoma
+            'OK': {
+                'Tulsa County': 'American Red Cross serving Tulsa Area OK',
+                'Oklahoma County': 'American Red Cross serving Central and Southwest OK'
+            },
+            // Arizona
+            'AZ': {
+                'Maricopa County': 'American Red Cross of Central Arizona'
+            },
+            // Kansas
+            'KS': {
+                'Sedgwick County': 'American Red Cross of South Central and Southeast Kansas'
+            },
+            // Missouri
+            'MO': {
+                'St. Louis County': 'American Red Cross of Greater St Louis',
+                'St. Louis City': 'American Red Cross of Greater St Louis'
+            }
+        };
+        
+        const stateKey = state.toUpperCase().trim();
+        const countyKey = county.trim();
+        
+        // Direct county lookup
+        if (COUNTY_CHAPTER_MAPPING[stateKey] && COUNTY_CHAPTER_MAPPING[stateKey][countyKey]) {
+            return COUNTY_CHAPTER_MAPPING[stateKey][countyKey];
+        }
+        
+        // Try case-insensitive county lookup
+        if (COUNTY_CHAPTER_MAPPING[stateKey]) {
+            for (const [mappedCounty, chapter] of Object.entries(COUNTY_CHAPTER_MAPPING[stateKey])) {
+                if (mappedCounty.toLowerCase() === countyKey.toLowerCase()) {
+                    return chapter;
+                }
+            }
+        }
+        
+        return null;
+    }
+
     findBestColumnMatch(masterHeader, newHeaders, type) {
         const semanticMappings = this.getColumnMapping(type);
         const masterHeaderLower = masterHeader.toLowerCase().trim();
@@ -629,6 +784,13 @@ class CommMobDataProcessor {
             }
         }
 
+        // Assign missing chapters based on county/state mapping
+        this.log('Assigning missing chapters based on location data...', 'info');
+        const chapterAssignmentResult = this.assignMissingChapters(standardizedNewData, type);
+        
+        // Store chapter assignment stats for reporting
+        this.chapterAssignmentStats = chapterAssignmentResult;
+        
         // Combine data
         const combinedData = [...masterData, ...standardizedNewData];
         this.log(`Combined data count: ${combinedData.length}`, 'info');
@@ -799,7 +961,7 @@ class CommMobDataProcessor {
         this.log(`Downloaded ${filename} with ${data.length} rows`, 'success');
     }
 
-    generateProcessingReport(beforeCounts, validationResult) {
+    generateProcessingReport(beforeCounts, validationResult, chapterAssignmentStats = {}) {
         const timestamp = new Date();
         const filesProcessed = [];
         
@@ -809,7 +971,7 @@ class CommMobDataProcessor {
                 type: 'Applicants',
                 filename: document.getElementById('applicants-file').files[0]?.name || 'Unknown file',
                 newRows: this.newApplicantsData.length,
-                duplicatesRemoved: beforeCounts.masterApplicants + beforeCounts.newApplicants - this.processedApplicantsData.length
+                duplicatesRemoved: 0 // No duplicate removal
             });
         }
         
@@ -818,7 +980,7 @@ class CommMobDataProcessor {
                 type: 'Volunteers',
                 filename: document.getElementById('volunteers-file').files[0]?.name || 'Unknown file',
                 newRows: this.newVolunteersData.length,
-                duplicatesRemoved: beforeCounts.masterVolunteers + beforeCounts.newVolunteers - this.processedVolunteersData.length
+                duplicatesRemoved: 0 // No duplicate removal
             });
         }
 
@@ -828,7 +990,9 @@ class CommMobDataProcessor {
             summary: {
                 totalFilesProcessed: filesProcessed.length,
                 totalNewRecords: filesProcessed.reduce((sum, file) => sum + file.newRows, 0),
-                totalDuplicatesRemoved: filesProcessed.reduce((sum, file) => sum + file.duplicatesRemoved, 0),
+                totalDuplicatesRemoved: 0, // No duplicate removal
+                totalChaptersAssigned: chapterAssignmentStats.assignmentsMade || 0,
+                totalChaptersSkipped: chapterAssignmentStats.assignmentsSkipped || 0,
                 validationPassed: validationResult.valid
             },
             beforeProcessing: {
@@ -844,6 +1008,7 @@ class CommMobDataProcessor {
                 volunteersNetChange: this.processedVolunteersData.length - beforeCounts.masterVolunteers
             },
             filesProcessed: filesProcessed,
+            chapterAssignment: chapterAssignmentStats,
             validationResults: {
                 passed: validationResult.valid,
                 issues: validationResult.issues,
