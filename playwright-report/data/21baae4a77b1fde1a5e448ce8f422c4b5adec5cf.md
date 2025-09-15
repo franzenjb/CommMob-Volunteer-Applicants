@@ -1,0 +1,49 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - heading "🏥 CommMob Data Processor" [level=1] [ref=e4]
+    - paragraph [ref=e5]: Process and merge volunteer/applicant data for ArcGIS feature layers
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: "Master Applicants:"
+      - generic [ref=e9]: "-"
+    - generic [ref=e10]:
+      - generic [ref=e11]: "Master Volunteers:"
+      - generic [ref=e12]: "-"
+    - generic [ref=e13]:
+      - generic [ref=e14]: "New Applicants:"
+      - generic [ref=e15]: "-"
+    - generic [ref=e16]:
+      - generic [ref=e17]: "New Volunteers:"
+      - generic [ref=e18]: "-"
+  - generic [ref=e19]:
+    - generic [ref=e20]:
+      - heading "📁 Upload New Data Files" [level=2] [ref=e21]
+      - generic [ref=e22]:
+        - generic [ref=e24] [cursor=pointer]:
+          - generic [ref=e25] [cursor=pointer]: 📄
+          - heading "Applicants Data" [level=3] [ref=e26] [cursor=pointer]
+          - paragraph [ref=e27] [cursor=pointer]: Drag & drop or click to select
+        - generic [ref=e29] [cursor=pointer]:
+          - generic [ref=e30] [cursor=pointer]: 👥
+          - heading "Volunteers Data" [level=3] [ref=e31] [cursor=pointer]
+          - paragraph [ref=e32] [cursor=pointer]: Drag & drop or click to select
+    - generic [ref=e33]:
+      - heading "⚙️ Processing Options" [level=2] [ref=e34]
+      - generic [ref=e35]:
+        - generic [ref=e37] [cursor=pointer]:
+          - checkbox "Skip header rows (recommended for NEIA files)" [checked] [ref=e38]
+          - text: Skip header rows (recommended for NEIA files)
+        - generic [ref=e40] [cursor=pointer]:
+          - checkbox "Validate data structure before processing" [checked] [ref=e41]
+          - text: Validate data structure before processing
+        - generic [ref=e43] [cursor=pointer]:
+          - checkbox "Create backup of master files" [checked] [ref=e44]
+          - text: Create backup of master files
+      - button "🔄 Process Data" [disabled] [ref=e45]
+  - generic [ref=e46]:
+    - heading "📝 Processing Log" [level=3] [ref=e47]
+    - generic [ref=e49]: "[4:04:01 PM] Loading master files..."
+```

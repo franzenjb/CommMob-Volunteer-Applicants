@@ -79,3 +79,4 @@ The application is deployed on GitHub Pages and available at:
 - **Preview Before Download**: See exactly what the final files contain
 - **Processing Log**: Complete audit trail of all operations
 
+
