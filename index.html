@@ -34,8 +34,92 @@
         </div>
 
         <div class="main-content">
+            <!-- CRITICAL PREPROCESSING INSTRUCTIONS -->
+            <div class="instructions-section">
+                <div class="instructions-header">
+                    <h2>🚨 CRITICAL: READ THIS FIRST!</h2>
+                    <p class="instructions-subtitle">The application will FAIL if you don't follow these steps:</p>
+                </div>
+                
+                <div class="instructions-grid">
+                    <div class="instruction-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Delete Excess Header Rows</h3>
+                            <p><strong>MANDATORY:</strong> Open your NEIA files and delete rows 1-8 that contain metadata. Keep ONLY row 9 (actual headers) and move it to row 1.</p>
+                            <div class="step-details">
+                                <strong>Delete these rows:</strong>
+                                <ul>
+                                    <li>"American Red Cross - Created by Volunteer Connection"</li>
+                                    <li>"Data from last night: [date]"</li>
+                                    <li>"Applicant Listing - Applications between [dates]"</li>
+                                    <li>"Region: [Region Name]"</li>
+                                    <li>Various description rows</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Geocode with Geocodio</h3>
+                            <p><strong>MANDATORY:</strong> Go to <a href="https://www.geocod.io/" target="_blank">Geocodio.com</a> and geocode your cleaned CSV file to add coordinates AND get properly formatted addresses.</p>
+                            <div class="step-details">
+                                <strong>Benefits of Geocoding:</strong>
+                                <ul>
+                                    <li>✅ Proper capitalization (Atlanta, GA instead of ATLANTA, GA)</li>
+                                    <li>✅ Standardized formatting (proper city, county names)</li>
+                                    <li>✅ Accurate coordinates for mapping</li>
+                                    <li>✅ Better chapter assignment accuracy</li>
+                                </ul>
+                                <strong>Steps:</strong>
+                                <ol>
+                                    <li>Upload your cleaned CSV file</li>
+                                    <li>Select address columns (Address, City, State, Zip)</li>
+                                    <li>Run the geocoding process</li>
+                                    <li>Download results (will have <code>_geocodio</code> suffix)</li>
+                                    <li>Verify coordinates were added (Longitude, Latitude columns)</li>
+                                    <li>Verify properly formatted addresses (Geocoded City, Geocoded State, etc.)</li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="instruction-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Upload _geocodio Files</h3>
+                            <p><strong>MANDATORY:</strong> Only upload files with <code>_geocodio</code> suffix. Do NOT upload raw NEIA files.</p>
+                            <div class="step-details">
+                                <strong>Correct file names:</strong>
+                                <ul>
+                                    <li><code>NEIA Applicants 9 25_geocodio.csv</code> ✅</li>
+                                    <li><code>NEIA Volunteers 9 25_geocodio.csv</code> ✅</li>
+                                </ul>
+                                <strong>Wrong file names:</strong>
+                                <ul>
+                                    <li><code>NEIA Applicants 9 25.csv</code> ❌</li>
+                                    <li><code>NEIA Volunteers 9 25.csv</code> ❌</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="warning-box">
+                    <h3>⚠️ Common Mistakes That Will Cause Failures:</h3>
+                    <ul>
+                        <li>❌ Uploading raw NEIA files without header cleanup</li>
+                        <li>❌ Uploading files without geocoding</li>
+                        <li>❌ Uploading files without <code>_geocodio</code> suffix</li>
+                        <li>❌ Leaving multiple header rows in the file</li>
+                    </ul>
+                </div>
+            </div>
+
             <div class="upload-section">
-                <h2>📁 Upload New Data Files</h2>
+                <h2>📁 Upload Your _geocodio Files</h2>
                 <div class="upload-areas">
                     <div class="upload-area" id="applicants-upload">
                         <div class="upload-content">

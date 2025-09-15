@@ -414,10 +414,10 @@ class CommMobDataProcessor {
                 'Outcome at 21 Days': 'Outcome at 21 Days After Application**',
                 'Current Chapter': 'Current Chapter In This Region (if applic.)',
                 'Home Chapter': 'Home Chapter In This Region (if applic.)',
-                'City': 'City',
-                'State': 'State',
-                'County': 'County of Residence',
-                'Zip': 'Zip Code',
+                'City': 'Geocoded City', // Use geocoded data for proper formatting
+                'State': 'Geocoded State', // Use geocoded data for proper formatting
+                'County': 'Geocoded County', // Use geocoded data for proper formatting
+                'Zip': 'Geocoded ZIP Code', // Use geocoded data for proper formatting
                 'Country': 'Country',
                 'Inactivation Comments': 'Inactivation Comments',
                 'Inactivation Reason for Change': 'Inactivation Reason for Change',
@@ -435,6 +435,11 @@ class CommMobDataProcessor {
                 header.toLowerCase().includes('y')
             );
             
+            // Check for geocoded address fields
+            const hasGeocodedAddress = newHeaders.some(header => 
+                header.toLowerCase().includes('geocoded')
+            );
+            
             if (!hasGeocodedCoords) {
                 // Raw NEIA file without coordinates
                 positionalMap['x'] = '';
@@ -442,6 +447,19 @@ class CommMobDataProcessor {
                 this.log('Warning: No geocoded coordinates found. Using empty x,y fields.', 'warning');
             } else {
                 this.log('Geocoded coordinates detected. Using Longitude/Latitude fields.', 'info');
+            }
+            
+            // Use geocoded data if available, otherwise fall back to original
+            if (hasGeocodedAddress) {
+                this.log('Geocoded address data detected. Using standardized geocoded fields for proper formatting.', 'info');
+                // Geocoded fields are already mapped above
+            } else {
+                this.log('No geocoded address data found. Using original address fields.', 'warning');
+                // Fall back to original field names
+                positionalMap['City'] = 'City';
+                positionalMap['State'] = 'State';
+                positionalMap['County'] = 'County of Residence';
+                positionalMap['Zip'] = 'Zip Code';
             }
             
             // Apply the mapping
@@ -511,8 +529,9 @@ class CommMobDataProcessor {
         let assignmentsSkipped = 0;
         
         standardizedData.forEach((row, index) => {
-            const state = row['State'];
-            const county = row['County'] || row['County of Residence'];
+            // Use geocoded data if available for better chapter assignment
+            const state = row['State']; // This will be geocoded if available
+            const county = row['County'] || row['County of Residence']; // This will be geocoded if available
             
             if (type === 'applicants') {
                 // Check if Current Chapter is missing
