@@ -372,7 +372,7 @@ class CommMobDataProcessor {
                     h.toLowerCase().trim() === possibleMatch.toLowerCase().trim()
                 );
                 if (exactMatch) {
-                    this.log(`Exact semantic match: "${masterHeader}" -> "${exactMatch}"`, 'info');
+                    // Reduce log verbosity for performance
                     return exactMatch;
                 }
             }
@@ -428,11 +428,14 @@ class CommMobDataProcessor {
         });
         
         if (bestMatch) {
-            this.log(`Fuzzy match (${bestScore.toFixed(1)}%): "${masterHeader}" -> "${bestMatch}"`, 'info');
+            // Reduce log verbosity for performance
             return bestMatch;
         }
         
-        this.log(`No match found for: "${masterHeader}"`, 'warning');
+        // Only log warnings for important missing fields
+        if (['account_id', 'Current Status', 'Email Address', 'Email'].includes(masterHeader)) {
+            this.log(`No match found for important field: "${masterHeader}"`, 'warning');
+        }
         return null;
     }
 
@@ -459,27 +462,39 @@ class CommMobDataProcessor {
         const newHeaders = Object.keys(newData[0] || {});
         this.log(`Starting intelligent column mapping for ${type}...`, 'info');
         
-        const standardizedNewData = newData.map(row => {
-            const standardizedRow = {};
+        // Pre-compute column mappings to avoid repeated calculations
+        const columnMappings = {};
+        masterHeaders.forEach(masterHeader => {
+            const bestMatch = this.findBestColumnMatch(masterHeader, newHeaders, type);
+            columnMappings[masterHeader] = bestMatch;
+        });
+        
+        this.log(`Column mapping completed for ${Object.keys(columnMappings).length} fields`, 'info');
+        
+        // Process data in batches to avoid freezing
+        const standardizedNewData = [];
+        const batchSize = 100; // Process 100 rows at a time
+        
+        for (let i = 0; i < newData.length; i += batchSize) {
+            const batch = newData.slice(i, i + batchSize);
             
-            masterHeaders.forEach(masterHeader => {
-                let value = '';
+            batch.forEach(row => {
+                const standardizedRow = {};
                 
-                // Use AI-powered column matching
-                const bestMatch = this.findBestColumnMatch(masterHeader, newHeaders, type);
+                masterHeaders.forEach(masterHeader => {
+                    const sourceColumn = columnMappings[masterHeader];
+                    standardizedRow[masterHeader] = sourceColumn && row[sourceColumn] !== undefined ? 
+                        (row[sourceColumn] || '') : '';
+                });
                 
-                if (bestMatch && row[bestMatch] !== undefined) {
-                    value = row[bestMatch] || '';
-                } else {
-                    // If no match found, leave empty
-                    value = '';
-                }
-                
-                standardizedRow[masterHeader] = value;
+                standardizedNewData.push(standardizedRow);
             });
             
-            return standardizedRow;
-        });
+            // Update progress every batch
+            if (i % 500 === 0) {
+                this.log(`Processed ${Math.min(i + batchSize, newData.length)} of ${newData.length} records...`, 'info');
+            }
+        }
 
         // Combine data
         const combinedData = [...masterData, ...standardizedNewData];
