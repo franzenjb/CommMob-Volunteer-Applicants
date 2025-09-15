@@ -21,11 +21,26 @@ New data often comes in poorly formatted files (examples in repository):
 - `NEIA Applicants 9 25.csv`
 - `NEIA Volunteers 9 25.csv`
 
-### Common Data Issues
-- Extra header rows at the top
-- Inconsistent column names/order
-- Data formatting problems
-- Missing or malformed fields
+### Common Data Issues with NEIA Files
+- **Multiple header rows** (8-9 rows before actual data)
+- **Inconsistent column names/order** compared to master files
+- **Data formatting problems** (quotes, special characters)
+- **Missing or malformed fields**
+- **Red Cross software export format** - this is standard across regions
+
+### NEIA File Structure
+NEIA files typically have this structure:
+```
+Row 1: "American Red Cross - Created by Volunteer Connection - Report Run: [date]"
+Row 2: "[Data from last night: [date]]"
+Row 3: "Applicant Listing - Applications between [dates] ([count] people)"
+Row 4: "Region: [Region Name]"
+Row 5-8: Various description rows
+Row 9: **ACTUAL HEADERS** - "Account Name (hyperlink),Entry Point,Entry Point Final Status..."
+Row 10+: **ACTUAL DATA**
+```
+
+**Important:** The application automatically detects and skips these header rows when "Skip header rows" is enabled.
 
 ### Processing Requirements
 1. Clean and standardize incoming data

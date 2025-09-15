@@ -90,26 +90,72 @@ class CommMobDataProcessor {
         this.log(`Processing ${type} file: ${file.name}`, 'info');
 
         Papa.parse(file, {
-            header: true,
+            header: false, // Parse without header first to handle multiple header rows
             complete: (results) => {
                 const skipHeaderRows = document.getElementById('skip-header-rows').checked;
-                let data = results.data;
+                let rows = results.data;
 
                 if (skipHeaderRows) {
-                    // Remove empty rows and header rows (common in NEIA files)
-                    data = data.filter(row => {
+                    // Find the actual header row (contains "Account Name" or similar)
+                    let headerRowIndex = -1;
+                    for (let i = 0; i < rows.length; i++) {
+                        const rowText = rows[i].join('').toLowerCase();
+                        if (rowText.includes('account name') || 
+                            rowText.includes('member #') ||
+                            (type === 'applicants' && rowText.includes('entry point')) ||
+                            (type === 'volunteers' && rowText.includes('current status'))) {
+                            headerRowIndex = i;
+                            break;
+                        }
+                    }
+
+                    if (headerRowIndex >= 0) {
+                        this.log(`Found header row at line ${headerRowIndex + 1}`, 'info');
+                        // Extract headers and data
+                        const headers = rows[headerRowIndex];
+                        const dataRows = rows.slice(headerRowIndex + 1);
+                        
+                        // Convert to objects with proper headers
+                        const processedData = dataRows.map(row => {
+                            const obj = {};
+                            headers.forEach((header, index) => {
+                                if (header && header.trim()) {
+                                    obj[header.trim()] = row[index] || '';
+                                }
+                            });
+                            return obj;
+                        }).filter(row => {
+                            // Remove completely empty rows
+                            const values = Object.values(row);
+                            return values.some(value => value && value.toString().trim() !== '');
+                        });
+
+                        if (type === 'applicants') {
+                            this.newApplicantsData = processedData;
+                        } else {
+                            this.newVolunteersData = processedData;
+                        }
+
+                        this.log(`Processed ${processedData.length} valid records from ${type} file`, 'info');
+                    } else {
+                        this.log(`Could not find header row in ${type} file`, 'error');
+                        return;
+                    }
+                } else {
+                    // Use original simple parsing
+                    const data = results.data.filter(row => {
                         const values = Object.values(row);
                         return values.some(value => value && value.trim() !== '');
                     });
+
+                    if (type === 'applicants') {
+                        this.newApplicantsData = data;
+                    } else {
+                        this.newVolunteersData = data;
+                    }
                 }
 
-                if (type === 'applicants') {
-                    this.newApplicantsData = data;
-                } else {
-                    this.newVolunteersData = data;
-                }
-
-                this.updateFileInfo(type, file.name, data.length);
+                this.updateFileInfo(type, file.name, type === 'applicants' ? this.newApplicantsData.length : this.newVolunteersData.length);
                 this.updateStatusBar();
                 this.checkProcessButton();
             },
