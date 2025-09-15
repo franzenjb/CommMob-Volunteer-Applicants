@@ -269,6 +269,173 @@ class CommMobDataProcessor {
         }
     }
 
+    getColumnMapping(type) {
+        // Define semantic mappings for intelligent column matching
+        const semanticMappings = {
+            applicants: {
+                // Core identifiers
+                'account_id': ['account_id', 'account id', 'id', 'member id', 'user id'],
+                'Entry Point': ['entry point', 'entrypoint', 'application type', 'volunteer type'],
+                'Current Status': ['current status', 'status', 'volunteer status', 'application status'],
+                
+                // Personal info
+                'Email Address': ['email address', 'email', 'e-mail', 'email addr'],
+                'Phone Numbers': ['phone numbers', 'phone', 'telephone', 'phone number', 'contact number'],
+                'City': ['city', 'town', 'municipality'],
+                'State': ['state', 'province', 'region', 'st'],
+                'County': ['county', 'county of residence', 'parish', 'borough'],
+                'Zip': ['zip', 'zip code', 'postal code', 'zipcode', 'postcode'],
+                'Country': ['country', 'nation'],
+                
+                // Dates
+                'Application Dt': ['application dt', 'application date', 'app date', 'application'],
+                'Vol Start Dt': ['vol start dt', 'volunteer start date', 'start date', 'vol start'],
+                'Inactive Dt': ['inactive dt', 'inactive date', 'inactivation date'],
+                
+                // Process fields
+                'Intake Outcome': ['intake outcome', 'outcome', 'result', 'intake result'],
+                'Contact Status': ['contact status', 'contacted', 'contact'],
+                'BGC Status': ['bgc status', 'background check status', 'bg status'],
+                'BGC Score': ['bgc score', 'background check score', 'bg score'],
+                
+                // Chapters
+                'Current Chapter': ['current chapter', 'chapter', 'current chapter in this region'],
+                'Home Chapter': ['home chapter', 'home chapter in this region'],
+                
+                // Workflow
+                'Workflow Type': ['workflow type', 'workflow', 'process type'],
+                'Intake Workflow': ['intake workflow', 'workflow', 'process'],
+                
+                // Outcomes
+                'Outcome at 21 Days': ['outcome at 21 days', '21 day outcome', 'outcome at 21 days after application'],
+                '21 Days (Active/Inactive)': ['21 days (active/inactive)', 'proc. in 21 days (active/inactive)', '21 days'],
+                
+                // Coordinates (often missing in NEIA)
+                'x': ['x', 'longitude', 'lng', 'lon'],
+                'y': ['y', 'latitude', 'lat']
+            },
+            volunteers: {
+                // Core identifiers
+                'account_id': ['account_id', 'account id', 'id', 'member id', 'user id'],
+                'Member #': ['member #', 'member number', 'member no', 'member'],
+                'Current Status': ['current status', 'status', 'volunteer status'],
+                'Status Type': ['status type', 'type', 'volunteer type'],
+                
+                // Personal info
+                'Email': ['email', 'e-mail', 'email address'],
+                'City': ['city', 'town', 'municipality'],
+                'State': ['state', 'province', 'region', 'st'],
+                'County of Residence': ['county of residence', 'county', 'parish', 'borough'],
+                'Zip': ['zip', 'zip code', 'postal code', 'zipcode', 'postcode'],
+                
+                // Contact info
+                'Home Phone': ['home phone', 'home', 'home tel', 'home telephone'],
+                'Cell Phone': ['cell phone', 'cell', 'mobile', 'cell phone', 'mobile phone'],
+                'Work Phone': ['work phone', 'work', 'work tel', 'work telephone'],
+                
+                // Dates
+                'Volunteer Since Date': ['volunteer since date', 'volunteer since', 'since date', 'start date'],
+                'Last Login': ['last login', 'login', 'last sign in'],
+                'Profile Last Updt': ['profile last updt', 'profile last update', 'last update', 'profile update'],
+                
+                // Positions
+                'Current Positions': ['current positions', 'positions', 'current position'],
+                'Services of Current Positions': ['services of current positions', 'services', 'service areas'],
+                
+                // Hours
+                'Last Hours Entry': ['last hours entry', 'last hours', 'hours entry', 'last hours entry**'],
+                
+                // Language
+                '2nd Language': ['2nd language', 'second language', 'language', 'additional language'],
+                
+                // GAP
+                'Primary GAP': ['primary gap', 'gap', 'primary', 'main gap'],
+                
+                // Coordinates (often missing in NEIA)
+                'x': ['x', 'longitude', 'lng', 'lon'],
+                'y': ['y', 'latitude', 'lat']
+            }
+        };
+
+        return semanticMappings[type] || {};
+    }
+
+    findBestColumnMatch(masterHeader, newHeaders, type) {
+        const semanticMappings = this.getColumnMapping(type);
+        const masterHeaderLower = masterHeader.toLowerCase().trim();
+        
+        // First, try exact semantic mapping
+        if (semanticMappings[masterHeader]) {
+            const possibleMatches = semanticMappings[masterHeader];
+            for (const possibleMatch of possibleMatches) {
+                const exactMatch = newHeaders.find(h => 
+                    h.toLowerCase().trim() === possibleMatch.toLowerCase().trim()
+                );
+                if (exactMatch) {
+                    this.log(`Exact semantic match: "${masterHeader}" -> "${exactMatch}"`, 'info');
+                    return exactMatch;
+                }
+            }
+        }
+        
+        // Then try fuzzy matching with semantic hints
+        let bestMatch = null;
+        let bestScore = 0;
+        
+        newHeaders.forEach(newHeader => {
+            const newHeaderLower = newHeader.toLowerCase().trim();
+            
+            // Calculate similarity score
+            let score = 0;
+            
+            // Exact match
+            if (newHeaderLower === masterHeaderLower) {
+                score = 100;
+            }
+            // Contains match
+            else if (newHeaderLower.includes(masterHeaderLower) || masterHeaderLower.includes(newHeaderLower)) {
+                score = 80;
+            }
+            // Word overlap
+            else {
+                const masterWords = masterHeaderLower.split(/[\s\-_\.]+/);
+                const newWords = newHeaderLower.split(/[\s\-_\.]+/);
+                const overlap = masterWords.filter(word => 
+                    newWords.some(newWord => 
+                        word === newWord || 
+                        word.includes(newWord) || 
+                        newWord.includes(word)
+                    )
+                ).length;
+                score = (overlap / Math.max(masterWords.length, newWords.length)) * 60;
+            }
+            
+            // Boost score for known semantic relationships
+            if (semanticMappings[masterHeader]) {
+                const possibleMatches = semanticMappings[masterHeader];
+                if (possibleMatches.some(match => 
+                    newHeaderLower.includes(match.toLowerCase()) || 
+                    match.toLowerCase().includes(newHeaderLower)
+                )) {
+                    score += 20;
+                }
+            }
+            
+            if (score > bestScore && score > 30) { // Minimum threshold
+                bestScore = score;
+                bestMatch = newHeader;
+            }
+        });
+        
+        if (bestMatch) {
+            this.log(`Fuzzy match (${bestScore.toFixed(1)}%): "${masterHeader}" -> "${bestMatch}"`, 'info');
+            return bestMatch;
+        }
+        
+        this.log(`No match found for: "${masterHeader}"`, 'warning');
+        return null;
+    }
+
     async mergeData(masterData, newData, type) {
         this.log(`Merging ${type} data...`, 'info');
         
@@ -288,20 +455,29 @@ class CommMobDataProcessor {
             this.log(`Sample new headers: ${newHeaders.slice(0, 5).join(', ')}`, 'info');
         }
         
-        // Standardize new data headers to match master
+        // Use intelligent column mapping to standardize new data
+        const newHeaders = Object.keys(newData[0] || {});
+        this.log(`Starting intelligent column mapping for ${type}...`, 'info');
+        
         const standardizedNewData = newData.map(row => {
             const standardizedRow = {};
-            masterHeaders.forEach(header => {
-                // Try to find matching column (case insensitive, handle quotes and special chars)
-                const cleanHeader = header.toLowerCase().trim().replace(/["'"]/g, '');
-                const matchingKey = Object.keys(row).find(key => {
-                    const cleanKey = key.toLowerCase().trim().replace(/["'"]/g, '');
-                    return cleanKey === cleanHeader || 
-                           cleanKey.includes(cleanHeader) || 
-                           cleanHeader.includes(cleanKey);
-                });
-                standardizedRow[header] = matchingKey ? row[matchingKey] : '';
+            
+            masterHeaders.forEach(masterHeader => {
+                let value = '';
+                
+                // Use AI-powered column matching
+                const bestMatch = this.findBestColumnMatch(masterHeader, newHeaders, type);
+                
+                if (bestMatch && row[bestMatch] !== undefined) {
+                    value = row[bestMatch] || '';
+                } else {
+                    // If no match found, leave empty
+                    value = '';
+                }
+                
+                standardizedRow[masterHeader] = value;
             });
+            
             return standardizedRow;
         });
 
