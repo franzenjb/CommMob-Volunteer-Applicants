@@ -36,6 +36,39 @@ class CommMobDataProcessor {
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
         });
+        
+        // Modal functionality
+        this.initializeModal();
+    }
+    
+    initializeModal() {
+        const modal = document.getElementById('help-modal');
+        const showHelpBtn = document.getElementById('show-detailed-help');
+        const closeBtn = document.querySelector('.close');
+        
+        // Show modal
+        showHelpBtn.addEventListener('click', () => {
+            modal.style.display = 'block';
+        });
+        
+        // Close modal
+        closeBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.style.display === 'block') {
+                modal.style.display = 'none';
+            }
+        });
     }
 
     setupDragAndDrop(element, type) {
