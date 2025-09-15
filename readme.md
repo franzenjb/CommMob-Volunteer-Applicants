@@ -61,26 +61,26 @@ The core files that must maintain consistent structure for ArcGIS integration:
 
 ### Input Files
 New data comes in these formats:
-- **Raw NEIA files** (examples in repository):
-  - `NEIA Applicants 9 25.csv`
-  - `NEIA Volunteers 9 25.csv`
+- **Raw Volunteer Connection exports** (examples in repository):
+  - `NEIA Applicants 9 25.csv` (example from NEIA region)
+  - `NEIA Volunteers 9 25.csv` (example from NEIA region)
 - **Post-geocode files** (processed with geocoding service):
-  - `NEIA Applicants 9 25_geocodio.csv`
-  - `NEIA Volunteers 9 25_geocodio.csv`
+  - `YourRegion Applicants 9 25_geocodio.csv`
+  - `YourRegion Volunteers 9 25_geocodio.csv`
 
 ### Preprocessing Summary
 **See the critical preprocessing steps at the top of this README before using the application.**
 
-### Common Data Issues with NEIA Files
+### Common Data Issues with Volunteer Connection Exports
 - **Multiple header rows** (8-9 rows before actual data) - **MUST BE REMOVED FIRST**
 - **Inconsistent column names/order** compared to master files
 - **Missing coordinates** - **MUST BE GEOCODED FIRST**
 - **Data formatting problems** (quotes, special characters)
 - **Missing or malformed fields**
-- **Red Cross software export format** - this is standard across regions
+- **Red Cross software export format** - this is standard across all regions
 
-### NEIA File Structure (BEFORE preprocessing)
-NEIA files typically have this structure:
+### Volunteer Connection File Structure (BEFORE preprocessing)
+Volunteer Connection exports typically have this structure:
 ```
 Row 1: "American Red Cross - Created by Volunteer Connection - Report Run: [date]"
 Row 2: "[Data from last night: [date]]"

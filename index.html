@@ -45,7 +45,7 @@
                     <div class="step-card">
                         <div class="step-icon">🧹</div>
                         <h3>Clean Your Files</h3>
-                        <p>Remove metadata rows (1-8) from NEIA files. Keep only actual headers and data.</p>
+                        <p>Remove metadata rows (1-8) from Volunteer Connection exports. Keep only actual headers and data.</p>
                     </div>
                     
                     <div class="step-card">
@@ -223,14 +223,14 @@
             <div class="modal-body">
                 <div class="instruction-step">
                     <h3>Step 1: Clean Your Files</h3>
-                    <p>Open your NEIA files and delete rows 1-8 that contain metadata. Keep ONLY row 9 (actual headers) and move it to row 1.</p>
+                    <p>Open your Volunteer Connection export files and delete rows 1-8 that contain metadata. Keep ONLY row 9 (actual headers) and move it to row 1.</p>
                     <div class="step-details">
                         <strong>Delete these rows:</strong>
                         <ul>
                             <li>"American Red Cross - Created by Volunteer Connection"</li>
                             <li>"Data from last night: [date]"</li>
                             <li>"Applicant Listing - Applications between [dates]"</li>
-                            <li>"Region: [Region Name]"</li>
+                            <li>"Region: [Your Region Name]"</li>
                             <li>Various description rows</li>
                         </ul>
                     </div>
@@ -260,17 +260,17 @@
                 
                 <div class="instruction-step">
                     <h3>Step 3: Upload Processed Files</h3>
-                    <p>Only upload files with <code>_geocodio</code> suffix. Do NOT upload raw NEIA files.</p>
+                    <p>Only upload files with <code>_geocodio</code> suffix. Do NOT upload raw Volunteer Connection files.</p>
                     <div class="step-details">
                         <strong>Correct file names:</strong>
                         <ul>
-                            <li><code>NEIA Applicants 9 25_geocodio.csv</code> ✅</li>
-                            <li><code>NEIA Volunteers 9 25_geocodio.csv</code> ✅</li>
+                            <li><code>YourRegion Applicants 9 25_geocodio.csv</code> ✅</li>
+                            <li><code>YourRegion Volunteers 9 25_geocodio.csv</code> ✅</li>
                         </ul>
                         <strong>Wrong file names:</strong>
                         <ul>
-                            <li><code>NEIA Applicants 9 25.csv</code> ❌</li>
-                            <li><code>NEIA Volunteers 9 25.csv</code> ❌</li>
+                            <li><code>YourRegion Applicants 9 25.csv</code> ❌</li>
+                            <li><code>YourRegion Volunteers 9 25.csv</code> ❌</li>
                         </ul>
                     </div>
                 </div>
