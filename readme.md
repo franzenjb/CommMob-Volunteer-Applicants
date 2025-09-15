@@ -21,14 +21,29 @@ New data often comes in poorly formatted files (examples in repository):
 - `NEIA Applicants 9 25.csv`
 - `NEIA Volunteers 9 25.csv`
 
+### ⚠️ CRITICAL PREPROCESSING REQUIREMENTS
+
+**BEFORE uploading files to the web application, users MUST:**
+
+1. **Delete All Unnecessary Header Rows** 
+   - Remove rows 1-8 that contain metadata and descriptions
+   - Keep ONLY the actual data headers (row 9) and data rows (row 10+)
+   - The application expects clean CSV files with headers in row 1
+
+2. **Geocode All Addresses**
+   - Add `x` and `y` coordinate columns to your data
+   - Use your preferred geocoding service (Google Maps, ArcGIS, etc.)
+   - Master files require latitude/longitude coordinates for ArcGIS integration
+
 ### Common Data Issues with NEIA Files
-- **Multiple header rows** (8-9 rows before actual data)
+- **Multiple header rows** (8-9 rows before actual data) - **MUST BE REMOVED FIRST**
 - **Inconsistent column names/order** compared to master files
+- **Missing coordinates** - **MUST BE GEOCODED FIRST**
 - **Data formatting problems** (quotes, special characters)
 - **Missing or malformed fields**
 - **Red Cross software export format** - this is standard across regions
 
-### NEIA File Structure
+### NEIA File Structure (BEFORE preprocessing)
 NEIA files typically have this structure:
 ```
 Row 1: "American Red Cross - Created by Volunteer Connection - Report Run: [date]"
@@ -40,13 +55,17 @@ Row 9: **ACTUAL HEADERS** - "Account Name (hyperlink),Entry Point,Entry Point Fi
 Row 10+: **ACTUAL DATA**
 ```
 
-**Important:** The application automatically detects and skips these header rows when "Skip header rows" is enabled.
+### Preprocessing Steps (REQUIRED)
+1. **Clean Headers**: Delete rows 1-8, move actual headers to row 1
+2. **Geocode Addresses**: Add x,y coordinates for all records
+3. **Validate Data**: Check for missing required fields
+4. **Upload to Application**: Use the cleaned, geocoded files
 
 ### Processing Requirements
-1. Clean and standardize incoming data
-2. Append new data to existing master files
-3. Maintain consistent column structure
-4. Generate updated master files for ArcGIS upload
+1. Upload preprocessed (cleaned + geocoded) data files
+2. Application merges new data with existing master files
+3. Maintains consistent column structure
+4. Generates updated master files for ArcGIS upload
 
 ## Future Development Goal
 Build an application that allows users to:
@@ -79,20 +98,29 @@ The application is deployed on GitHub Pages and available at:
 - **Processing Log**: Detailed log of all operations
 
 ### How to Use
-1. Open the web application in your browser
-2. Drag and drop your new data files (NEIA files)
-3. Review the processing options
-4. Click "Process Data" to merge the files
-5. Review the before/after counts and validation results
-6. Download the updated master files
-7. Upload to ArcGIS to update your feature layers
+1. **Preprocess your data** (REQUIRED):
+   - Delete unnecessary header rows from NEIA files
+   - Geocode all addresses to add x,y coordinates
+   - Ensure clean CSV format with headers in row 1
+2. Open the web application in your browser
+3. Drag and drop your **preprocessed** data files
+4. Review the processing options
+5. Click "Process Data" to merge the files
+6. Review the before/after counts and validation results
+7. Download the updated master files
+8. Upload to ArcGIS to update your feature layers
 
 ### Safety Features
 - **Row Count Validation**: Ensures no data is lost during processing
-- **Duplicate Detection**: Automatically removes duplicate records
 - **Data Structure Validation**: Maintains consistent column structure
 - **Preview Before Download**: See exactly what the final files contain
 - **Processing Log**: Complete audit trail of all operations
+- **Preprocessing Validation**: Expects clean, geocoded input files
 
+### ⚠️ Important Notes
+- **No Duplicate Removal**: Application preserves all data (no deduplication)
+- **Requires Preprocessing**: Users must clean and geocode files before upload
+- **Coordinate Requirements**: All records must have x,y coordinates for ArcGIS compatibility
 
+`
 
