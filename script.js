@@ -360,6 +360,108 @@ class CommMobDataProcessor {
         return semanticMappings[type] || {};
     }
 
+    createPositionalMapping(masterHeaders, newHeaders, type) {
+        const mapping = {};
+        
+        if (type === 'applicants') {
+            // Based on actual column analysis, create precise positional mapping
+            const positionalMap = {
+                'Entry Point': 'Entry Point', // Position 2 in NEIA
+                'Entry Point Final Status': 'Entry Point Final Status', // Position 3
+                'How Did You Hear': 'How Did You Hear About Us', // Position 4
+                'Other': 'Other', // Position 5
+                'Intake Outcome': 'Intake Outcome', // Position 6
+                'Contact Status': 'Contact Status', // Position 7
+                'Contact Completed Date': 'Contact Completed Date', // Position 8
+                'Current Status': 'Current Status', // Position 9
+                'Application Dt': 'Application Dt', // Position 10
+                'Vol Start Dt': 'Vol Start Dt', // Position 11
+                'Days To Vol Start': 'Days To Vol Start', // Position 12
+                'Inactive Dt': 'Inactive Dt', // Position 13
+                'Days To Inactive': 'Days To Inactive', // Position 14
+                'Days On Intake Path': 'Days On Intake Path', // Position 15
+                'Profile Updt': 'Profile Updt', // Position 16
+                'Code of Conduct': 'Code of Conduct', // Position 17
+                'Intell. Property': 'Intell. Property', // Position 18
+                'Info. Release': 'Info. Release', // Position 19
+                'Vol Handbook': 'Vol Handbook', // Position 20
+                'BGC Required': 'BGC Required', // Position 21
+                'Initiate BGC Step': 'Initiate BGC Step', // Position 22
+                'BGC Status': 'BGC Status', // Position 23
+                'BGC Score': 'BGC Score', // Position 24
+                'Compl BGC Step': 'Compl BGC Step', // Position 25
+                'Orientation Required': 'Orientation Required', // Position 26
+                'Register Orient. Step': 'Register Orient. Step', // Position 27
+                'Attend Orient. Step': 'Attend Orient. Step', // Position 28
+                'Workflow Type': 'Workflow Type', // Position 29
+                'Interest Indic Step': 'Interest Indic Step', // Position 30
+                'Passed to Region': 'Passed to Region', // Position 31
+                'Screening Form Status': 'Screening Form Status', // Position 32
+                'Screening Form Completed': 'Screening Form Completed', // Position 33
+                'Screening Form Completed By': 'Screening Form Completed By', // Position 34
+                'Refer Issued Step': 'Refer Issued Step', // Position 35
+                '1st Referral*': '1st Referral*', // Position 36
+                'Days To Referral*': 'Days To Referral*', // Position 37
+                'Refer Approved Step': 'Refer Approved Step', // Position 38
+                'Placement Dt': 'Placement Dt', // Position 39
+                'Days To Placement': 'Days To Placement', // Position 40
+                '21 Days (Active/Inactive)': 'Proc. in 21 Days (Active/Inactive)', // Position 41
+                'Outcome at 21 Days': 'Outcome at 21 Days After Application**', // Position 42
+                'Current Chapter': 'Current Chapter In This Region (if applic.)', // Position 43
+                'Home Chapter': 'Home Chapter In This Region (if applic.)', // Position 44
+                'City': 'City', // Position 48
+                'State': 'State', // Position 49
+                'County': 'County of Residence', // Position 51
+                'Zip': 'Zip Code', // Position 50
+                'Country': 'Country', // Position 46
+                'Inactivation Comments': 'Inactivation Comments', // Position 54
+                'Inactivation Reason for Change': 'Inactivation Reason for Change', // Position 55
+                'Intake Workflow': 'Intake Workflow', // Position 56
+                'x': '', // No coordinates in NEIA
+                'y': ''  // No coordinates in NEIA
+            };
+            
+            // Apply the mapping
+            masterHeaders.forEach(masterHeader => {
+                mapping[masterHeader] = positionalMap[masterHeader] || '';
+            });
+            
+        } else if (type === 'volunteers') {
+            // Similar approach for volunteers
+            const positionalMap = {
+                'Region Is Primary': 'Region Is Primary',
+                'Chapter Name': 'Chapter Name',
+                'Current Status': 'Current Status',
+                'Status Type': 'Status Type',
+                'State': 'ST',
+                'Zip': 'Zip Code',
+                'County of Residence': 'County of Residence',
+                'Dis Resp': 'Dis Resp',
+                'Primary GAP': 'Primary GAP',
+                '2nd Language': '2nd Language',
+                'SABA ID': 'SABA ID',
+                'Job Type': 'Job Type',
+                'Volunteer Since Date': 'Volunteer Since Date',
+                'Services of Current Positions': 'Services of Current Positions',
+                'Current Positions': 'Current Positions',
+                'Last Hours Entry': 'Last Hours Entry**',
+                'Last Login': 'Last Login',
+                'Days Since Last Login': 'Days Since Last Login',
+                'Profile Last Updt': 'Profile Last Updt',
+                'Days Since Profile Updt': 'Days Since Profile Updt',
+                'ObjectId': 'RCO ID',
+                'x': '', // No coordinates in NEIA
+                'y': ''  // No coordinates in NEIA
+            };
+            
+            masterHeaders.forEach(masterHeader => {
+                mapping[masterHeader] = positionalMap[masterHeader] || '';
+            });
+        }
+        
+        return mapping;
+    }
+
     findBestColumnMatch(masterHeader, newHeaders, type) {
         const semanticMappings = this.getColumnMapping(type);
         const masterHeaderLower = masterHeader.toLowerCase().trim();
@@ -458,22 +560,18 @@ class CommMobDataProcessor {
             this.log(`Sample new headers: ${newHeaders.slice(0, 5).join(', ')}`, 'info');
         }
         
-        // Use intelligent column mapping to standardize new data
+        // Use positional mapping approach for robust data conversion
         const newHeaders = Object.keys(newData[0] || {});
-        this.log(`Starting intelligent column mapping for ${type}...`, 'info');
+        this.log(`Starting positional column mapping for ${type}...`, 'info');
+        this.log(`Master columns: ${masterHeaders.length}, NEIA columns: ${newHeaders.length}`, 'info');
         
-        // Pre-compute column mappings to avoid repeated calculations
-        const columnMappings = {};
-        masterHeaders.forEach(masterHeader => {
-            const bestMatch = this.findBestColumnMatch(masterHeader, newHeaders, type);
-            columnMappings[masterHeader] = bestMatch;
-        });
+        // Create positional mapping based on column order and content
+        const columnMappings = this.createPositionalMapping(masterHeaders, newHeaders, type);
+        this.log(`Positional mapping created for ${Object.keys(columnMappings).length} fields`, 'info');
         
-        this.log(`Column mapping completed for ${Object.keys(columnMappings).length} fields`, 'info');
-        
-        // Process data in batches to avoid freezing
+        // Process data with positional mapping
         const standardizedNewData = [];
-        const batchSize = 100; // Process 100 rows at a time
+        const batchSize = 100;
         
         for (let i = 0; i < newData.length; i += batchSize) {
             const batch = newData.slice(i, i + batchSize);
@@ -490,7 +588,6 @@ class CommMobDataProcessor {
                 standardizedNewData.push(standardizedRow);
             });
             
-            // Update progress every batch
             if (i % 500 === 0) {
                 this.log(`Processed ${Math.min(i + batchSize, newData.length)} of ${newData.length} records...`, 'info');
             }
