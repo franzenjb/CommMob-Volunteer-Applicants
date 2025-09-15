@@ -126,7 +126,7 @@ Build an application that allows users to:
 
 ### 🚀 Live Application
 The application is deployed on GitHub Pages and available at:
-**https://[your-username].github.io/CommMob-Volunteer-Applicants/**
+**https://franzenjb.github.io/CommMob-Volunteer-Applicants/**
 
 ### Features
 - **Drag & Drop Interface**: Easy file upload for new data
