@@ -17,9 +17,13 @@ The core files that must maintain consistent structure for ArcGIS integration:
 ## Data Processing Workflow
 
 ### Input Files
-New data often comes in poorly formatted files (examples in repository):
-- `NEIA Applicants 9 25.csv`
-- `NEIA Volunteers 9 25.csv`
+New data comes in these formats:
+- **Raw NEIA files** (examples in repository):
+  - `NEIA Applicants 9 25.csv`
+  - `NEIA Volunteers 9 25.csv`
+- **Post-geocode files** (processed with geocoding service):
+  - `NEIA Applicants 9 25_geocodio.csv`
+  - `NEIA Volunteers 9 25_geocodio.csv`
 
 ### ⚠️ CRITICAL PREPROCESSING REQUIREMENTS
 
@@ -31,9 +35,14 @@ New data often comes in poorly formatted files (examples in repository):
    - The application expects clean CSV files with headers in row 1
 
 2. **Geocode All Addresses**
+   - Use your preferred geocoding service (Geocodio, Google Maps, ArcGIS, etc.)
    - Add `x` and `y` coordinate columns to your data
-   - Use your preferred geocoding service (Google Maps, ArcGIS, etc.)
    - Master files require latitude/longitude coordinates for ArcGIS integration
+   - **Note:** Geocoding often provides more accurate addresses, zip codes, and county names
+
+3. **Use Post-Geocode Files**
+   - Upload files with `_geocodio` suffix (or similar geocoding service suffix)
+   - These files contain the geocoded coordinates and improved address data
 
 ### Common Data Issues with NEIA Files
 - **Multiple header rows** (8-9 rows before actual data) - **MUST BE REMOVED FIRST**
@@ -62,10 +71,18 @@ Row 10+: **ACTUAL DATA**
 4. **Upload to Application**: Use the cleaned, geocoded files
 
 ### Processing Requirements
-1. Upload preprocessed (cleaned + geocoded) data files
-2. Application merges new data with existing master files
-3. Maintains consistent column structure
-4. Generates updated master files for ArcGIS upload
+1. Upload preprocessed (cleaned + geocoded) data files with `_geocodio` suffix
+2. Application performs intelligent column mapping to match master file structure
+3. Eliminates excess columns introduced by geocoding process
+4. Preserves improved address data from geocoding (more accurate addresses, zip codes, county names)
+5. Maintains exact column structure required for ArcGIS feature layer overwrite
+6. Generates updated master files (`Applicants 2025.csv` and `Volunteers 2025.csv`)
+
+### ⚠️ CRITICAL: ArcGIS Integration Requirements
+- **Files MUST match exactly** - `Applicants 2025.csv` and `Volunteers 2025.csv` structure
+- **Column order and names must be identical** to existing hosted feature layers
+- **Any deviation will cause ArcGIS upload failures**
+- Application handles column mapping and structure standardization automatically
 
 ## Future Development Goal
 Build an application that allows users to:
@@ -100,15 +117,16 @@ The application is deployed on GitHub Pages and available at:
 ### How to Use
 1. **Preprocess your data** (REQUIRED):
    - Delete unnecessary header rows from NEIA files
-   - Geocode all addresses to add x,y coordinates
+   - Geocode all addresses using Geocodio or similar service
    - Ensure clean CSV format with headers in row 1
+   - Save files with `_geocodio` suffix
 2. Open the web application in your browser
-3. Drag and drop your **preprocessed** data files
+3. Drag and drop your **post-geocode** files (with `_geocodio` suffix)
 4. Review the processing options
-5. Click "Process Data" to merge the files
+5. Click "Process Data" to merge and standardize the files
 6. Review the before/after counts and validation results
-7. Download the updated master files
-8. Upload to ArcGIS to update your feature layers
+7. Download the updated master files (`Applicants 2025.csv` and `Volunteers 2025.csv`)
+8. Upload to ArcGIS to overwrite your hosted feature layers
 
 ### Safety Features
 - **Row Count Validation**: Ensures no data is lost during processing
@@ -121,6 +139,9 @@ The application is deployed on GitHub Pages and available at:
 - **No Duplicate Removal**: Application preserves all data (no deduplication)
 - **Requires Preprocessing**: Users must clean and geocode files before upload
 - **Coordinate Requirements**: All records must have x,y coordinates for ArcGIS compatibility
+- **Post-Geocode Files**: Use files with `_geocodio` suffix after geocoding
+- **Exact Structure Match**: Output files must match master file structure exactly for ArcGIS
+- **Improved Data**: Geocoding often provides more accurate addresses, zip codes, and county names
 
 `
 
