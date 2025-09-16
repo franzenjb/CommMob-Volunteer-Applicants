@@ -447,21 +447,23 @@ class CommMobDataProcessor {
                 'Outcome at 21 Days': 'Outcome at 21 Days After Application**',
                 'Current Chapter': 'Current Chapter In This Region (if applic.)',
                 'Home Chapter': 'Home Chapter In This Region (if applic.)',
-                'City': 'Geocoded City', // Use geocoded data for proper formatting
-                'State': 'Geocoded State', // Use geocoded data for proper formatting
-                'County': 'Geocoded County', // Use geocoded data for proper formatting
-                'Zip': 'Geocoded ZIP Code', // Use geocoded data for proper formatting
+                'City': 'Geocodio City', // Use geocoded data for proper formatting
+                'State': 'Geocodio State', // Use geocoded data for proper formatting
+                'County': 'Geocodio County', // Use geocoded data for proper formatting
+                'Zip': 'Geocodio Postal Code', // Use geocoded data for proper formatting
                 'Country': 'Country',
                 'Inactivation Comments': 'Inactivation Comments',
                 'Inactivation Reason for Change': 'Inactivation Reason for Change',
                 'Intake Workflow': 'Intake Workflow',
                 // For geocoded files, use the geocoded coordinates
-                'x': 'Longitude',
-                'y': 'Latitude'
+                'x': 'Geocodio Longitude',
+                'y': 'Geocodio Latitude'
             };
             
             // Check if this is a geocoded file (has coordinates)
             const hasGeocodedCoords = newHeaders.some(header => 
+                header.toLowerCase().includes('geocodio longitude') || 
+                header.toLowerCase().includes('geocodio latitude') ||
                 header.toLowerCase().includes('longitude') || 
                 header.toLowerCase().includes('latitude') ||
                 header.toLowerCase().includes('x') ||
@@ -470,7 +472,7 @@ class CommMobDataProcessor {
             
             // Check for geocoded address fields
             const hasGeocodedAddress = newHeaders.some(header => 
-                header.toLowerCase().includes('geocoded')
+                header.toLowerCase().includes('geocodio') || header.toLowerCase().includes('geocoded')
             );
             
             if (!hasGeocodedCoords) {
@@ -525,12 +527,14 @@ class CommMobDataProcessor {
                 'Days Since Profile Updt': 'Days Since Profile Updt',
                 'ObjectId': 'RCO ID',
                 // For geocoded files, use the geocoded coordinates
-                'x': 'Longitude',
-                'y': 'Latitude'
+                'x': 'Geocodio Longitude',
+                'y': 'Geocodio Latitude'
             };
             
             // Check for geocoded coordinates
             const hasGeocodedCoords = newHeaders.some(header => 
+                header.toLowerCase().includes('geocodio longitude') || 
+                header.toLowerCase().includes('geocodio latitude') ||
                 header.toLowerCase().includes('longitude') || 
                 header.toLowerCase().includes('latitude') ||
                 header.toLowerCase().includes('x') ||
