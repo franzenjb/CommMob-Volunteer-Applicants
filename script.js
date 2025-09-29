@@ -998,23 +998,51 @@ class CommMobDataProcessor {
 
     downloadFile(type) {
         const data = type === 'applicants' ? this.processedApplicantsData : this.processedVolunteersData;
-        const filename = type === 'applicants' ? 'Applicants 2025.csv' : 'Volunteer 2025.csv';
         
-        const csv = Papa.unparse(data);
-        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
+        // Add timestamp to filename for better tracking
+        const now = new Date();
+        const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
+        const baseFilename = type === 'applicants' ? 'Applicants 2025' : 'Volunteer 2025';
+        const filename = `${baseFilename}_${dateStr}.csv`;
         
-        if (link.download !== undefined) {
+        try {
+            const csv = Papa.unparse(data);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            
+            // Create download link
+            const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', filename);
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = filename;
+            
+            // Add visual feedback
+            const button = document.getElementById(`download-${type}`);
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Downloading...';
+            button.disabled = true;
+            
+            // Trigger download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            // Clean up
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            // Show success message with file location hint
+            this.log(`✅ Downloaded ${filename} with ${data.length.toLocaleString()} rows`, 'success');
+            this.log(`📁 Check your browser's Downloads folder for the file`, 'info');
+            
+            // Restore button after short delay
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+            
+        } catch (error) {
+            this.log(`❌ Error downloading ${type} file: ${error.message}`, 'error');
+            console.error('Download error:', error);
         }
-
-        this.log(`Downloaded ${filename} with ${data.length} rows`, 'success');
     }
 
     generateProcessingReport(beforeCounts, validationResult, chapterAssignmentStats = {}) {
@@ -1119,30 +1147,54 @@ class CommMobDataProcessor {
 
     downloadReport() {
         if (!this.processingReport) {
-            this.log('No processing report available to download', 'error');
+            this.log('❌ No processing report available to download', 'error');
             return;
         }
 
         const report = this.processingReport;
+        const filename = `CommMob_Processing_Report_${report.sessionId}.txt`;
         
-        // Generate detailed report content
-        const reportContent = this.generateReportContent(report);
-        
-        // Create and download the report file
-        const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8;' });
-        const link = document.createElement('a');
-        
-        if (link.download !== undefined) {
+        try {
+            // Generate detailed report content
+            const reportContent = this.generateReportContent(report);
+            
+            // Create blob for download
+            const blob = new Blob([reportContent], { type: 'text/plain;charset=utf-8;' });
+            
+            // Create download link
+            const link = document.createElement('a');
             const url = URL.createObjectURL(blob);
-            link.setAttribute('href', url);
-            link.setAttribute('download', `CommMob_Processing_Report_${report.sessionId}.txt`);
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = filename;
+            
+            // Add visual feedback
+            const button = document.getElementById('download-report');
+            const originalText = button.innerHTML;
+            button.innerHTML = '⏳ Downloading Report...';
+            button.disabled = true;
+            
+            // Trigger download
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            
+            // Clean up
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            // Show success message
+            this.log(`✅ Downloaded processing report: ${filename}`, 'success');
+            this.log(`📁 Check your browser's Downloads folder for the report`, 'info');
+            
+            // Restore button after short delay
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 2000);
+            
+        } catch (error) {
+            this.log(`❌ Error downloading report: ${error.message}`, 'error');
+            console.error('Download error:', error);
         }
-
-        this.log(`Processing report downloaded: CommMob_Processing_Report_${report.sessionId}.txt`, 'success');
     }
 
     generateReportContent(report) {
