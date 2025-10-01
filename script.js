@@ -999,50 +999,158 @@ class CommMobDataProcessor {
     downloadFile(type) {
         const data = type === 'applicants' ? this.processedApplicantsData : this.processedVolunteersData;
         
+        if (!data || data.length === 0) {
+            this.log(`❌ No ${type} data available for download`, 'error');
+            return;
+        }
+        
         // Add timestamp to filename for better tracking
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
         const baseFilename = type === 'applicants' ? 'Applicants 2025' : 'Volunteer 2025';
         const filename = `${baseFilename}_${dateStr}.csv`;
         
+        const button = document.getElementById(`download-${type}`);
+        const originalText = button.innerHTML;
+        
         try {
+            // Generate CSV
             const csv = Papa.unparse(data);
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            
-            // Create download link
-            const link = document.createElement('a');
-            const url = URL.createObjectURL(blob);
-            link.href = url;
-            link.download = filename;
             
             // Add visual feedback
-            const button = document.getElementById(`download-${type}`);
-            const originalText = button.innerHTML;
             button.innerHTML = '⏳ Downloading...';
             button.disabled = true;
             
-            // Trigger download
+            // Method 1: Try modern downloadFile API if available
+            if (this.tryModernDownload(csv, filename)) {
+                this.downloadSuccess(filename, data.length, button, originalText);
+                return;
+            }
+            
+            // Method 2: Enhanced blob download with better browser compatibility
+            const blob = new Blob(['\ufeff' + csv], { 
+                type: 'text/csv;charset=utf-8;' 
+            });
+            
+            // Try different download approaches
+            if (navigator.msSaveBlob) {
+                // IE/Edge
+                navigator.msSaveBlob(blob, filename);
+                this.downloadSuccess(filename, data.length, button, originalText);
+                return;
+            }
+            
+            // Modern browsers
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            
+            // Set all possible attributes for better compatibility
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            link.setAttribute('download', filename);
+            link.setAttribute('target', '_blank');
+            
+            // Add to DOM and trigger click
             document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
             
-            // Clean up
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            
-            // Show success message with file location hint
-            this.log(`✅ Downloaded ${filename} with ${data.length.toLocaleString()} rows`, 'success');
-            this.log(`📁 Check your browser's Downloads folder for the file`, 'info');
-            
-            // Restore button after short delay
+            // Multiple trigger attempts for better reliability
             setTimeout(() => {
-                button.innerHTML = originalText;
-                button.disabled = false;
-            }, 2000);
+                link.click();
+                
+                // Secondary trigger after short delay
+                setTimeout(() => {
+                    if (link.parentNode) {
+                        link.click();
+                    }
+                }, 100);
+                
+                // Cleanup
+                setTimeout(() => {
+                    if (link.parentNode) {
+                        document.body.removeChild(link);
+                    }
+                    URL.revokeObjectURL(url);
+                }, 1000);
+                
+            }, 50);
+            
+            this.downloadSuccess(filename, data.length, button, originalText);
             
         } catch (error) {
             this.log(`❌ Error downloading ${type} file: ${error.message}`, 'error');
+            this.log(`🔧 Try using a different browser or check your download settings`, 'info');
             console.error('Download error:', error);
+            
+            // Restore button
+            button.innerHTML = originalText;
+            button.disabled = false;
+            
+            // Offer fallback option
+            this.offerFallbackDownload(type, data);
         }
+    }
+    
+    tryModernDownload(csvContent, filename) {
+        try {
+            if ('showSaveFilePicker' in window) {
+                // File System Access API (Chrome 86+)
+                window.showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{
+                        description: 'CSV files',
+                        accept: { 'text/csv': ['.csv'] }
+                    }]
+                }).then(async (fileHandle) => {
+                    const writable = await fileHandle.createWritable();
+                    await writable.write('\ufeff' + csvContent);
+                    await writable.close();
+                }).catch(() => {
+                    // User cancelled or error - fall back to blob method
+                    return false;
+                });
+                return true;
+            }
+        } catch (error) {
+            console.log('Modern download API not available, using fallback');
+        }
+        return false;
+    }
+    
+    downloadSuccess(filename, dataLength, button, originalText) {
+        this.log(`✅ Downloaded ${filename} with ${dataLength.toLocaleString()} rows`, 'success');
+        this.log(`📁 Check your browser's Downloads folder for the file`, 'info');
+        this.log(`🔍 If file not found, try: browser settings > Downloads > Show downloads`, 'info');
+        
+        // Restore button after delay
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 2000);
+    }
+    
+    offerFallbackDownload(type, data) {
+        // Create a text area with the CSV content as fallback
+        const csv = Papa.unparse(data);
+        const fallbackDiv = document.createElement('div');
+        fallbackDiv.innerHTML = `
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                <h4>💡 Fallback Download Option</h4>
+                <p>If the automatic download failed, you can manually copy the data:</p>
+                <button onclick="this.nextElementSibling.style.display='block'; this.style.display='none';" 
+                        style="background: #007bff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">
+                    Show CSV Data
+                </button>
+                <textarea style="width: 100%; height: 200px; display: none; font-family: monospace; font-size: 12px; margin-top: 10px;" 
+                          readonly onclick="this.select()">${csv}</textarea>
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">
+                    Click "Show CSV Data", then select all text (Ctrl+A) and copy (Ctrl+C) to a new .csv file
+                </p>
+            </div>
+        `;
+        
+        const logContainer = document.getElementById('processing-log');
+        logContainer.appendChild(fallbackDiv);
     }
 
     generateProcessingReport(beforeCounts, validationResult, chapterAssignmentStats = {}) {
