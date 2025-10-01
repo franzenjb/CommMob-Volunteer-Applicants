@@ -729,15 +729,15 @@ class CommMobDataProcessor {
             });
             
         } else if (type === 'volunteers') {
-            // Mapping for volunteer files
+            // Mapping for volunteer files - EXACT field matching for Massachusetts data
             const positionalMap = {
                 'Region Is Primary': 'Region Is Primary',
                 'Chapter Name': 'Chapter Name',
                 'Current Status': 'Current Status',
                 'Status Type': 'Status Type',
-                'State': 'Geocodio State',  // Use Geocodio standardized state field - CRITICAL for MA data
-                'Zip': 'Geocodio Postal Code',  // Use Geocodio postal code field
-                'County of Residence': 'Geocodio County',  // Use Geocodio county field
+                'State': 'Geocodio State',  // Use Geocodio State for standardized MA data
+                'Zip': 'Geocodio Postal Code',  // Use Geocodio standardized postal code
+                'County of Residence': 'Geocodio County',  // Use Geocodio standardized county
                 'Dis Resp': 'Dis Resp',
                 'Primary GAP': 'Primary GAP',
                 '2nd Language': '2nd Language',
@@ -747,12 +747,13 @@ class CommMobDataProcessor {
                 'Services of Current Positions': 'Services of Current Positions',
                 'Current Positions': 'Current Positions',
                 'Last Hours Entry': 'Last Hours Entry**',
+                'Days since Last Hours': '',  // Calculate or leave empty
                 'Last Login': 'Last Login',
                 'Days Since Last Login': 'Days Since Last Login',
                 'Profile Last Updt': 'Profile Last Updt',
                 'Days Since Profile Updt': 'Days Since Profile Updt',
-                'ObjectId': 'RCO ID',
-                // For geocoded files, use the exact coordinates that worked before
+                'ObjectId': 'account_id',  // Massachusetts file uses 'account_id'
+                // Coordinates will be added from geocoding if available
                 'x': 'Geocodio Longitude',
                 'y': 'Geocodio Latitude'
             };
