@@ -731,31 +731,31 @@ class CommMobDataProcessor {
         } else if (type === 'volunteers') {
             // Mapping for volunteer files - EXACT field matching for Massachusetts data
             const positionalMap = {
-                'Region Is Primary': '"Region Is Primary"',
-                'Chapter Name': '"Chapter Name"',
-                'Current Status': '"Current Status"',
-                'Status Type': '"Status Type"',
-                'State': '"Geocodio State"',  // Massachusetts file has quotes around field names
-                'Zip': '"Geocodio Postal Code"',  // Massachusetts file has quotes around field names
-                'County of Residence': '"Geocodio County"',  // Massachusetts file has quotes around field names
-                'Dis Resp': '"Dis Resp"',
-                'Primary GAP': '"Primary GAP"',
-                '2nd Language': '"2nd Language"',
-                'SABA ID': '"SABA ID"',
-                'Job Type': '"Job Type"',
-                'Volunteer Since Date': '"Volunteer Since Date"',
-                'Services of Current Positions': '"Services of Current Positions"',
-                'Current Positions': '"Current Positions"',
-                'Last Hours Entry': '"Last Hours Entry**"',
+                'Region Is Primary': 'Region Is Primary',
+                'Chapter Name': 'Chapter Name',
+                'Current Status': 'Current Status',
+                'Status Type': 'Status Type',
+                'State': 'Geocodio State',  // Geocodio standardized state field
+                'Zip': 'Geocodio Postal Code',  // Geocodio standardized postal code
+                'County of Residence': 'Geocodio County',  // Geocodio standardized county
+                'Dis Resp': 'Dis Resp',
+                'Primary GAP': 'Primary GAP',
+                '2nd Language': '2nd Language',
+                'SABA ID': 'SABA ID',
+                'Job Type': 'Job Type',
+                'Volunteer Since Date': 'Volunteer Since Date',
+                'Services of Current Positions': 'Services of Current Positions',
+                'Current Positions': 'Current Positions',
+                'Last Hours Entry': 'Last Hours Entry**',
                 'Days since Last Hours': '',
-                'Last Login': '"Last Login"',
-                'Days Since Last Login': '"Days Since Last Login"',
-                'Profile Last Updt': '"Profile Last Updt"',
-                'Days Since Profile Updt': '"Days Since Profile Updt"',
-                'ObjectId': 'account_id',  // No quotes around this field
-                // Coordinates from geocoding
-                'x': '"Geocodio Longitude"',
-                'y': '"Geocodio Latitude"'
+                'Last Login': 'Last Login',
+                'Days Since Last Login': 'Days Since Last Login',
+                'Profile Last Updt': 'Profile Last Updt',
+                'Days Since Profile Updt': 'Days Since Profile Updt',
+                'ObjectId': 'account_id',
+                // Coordinates from geocoding - works for ALL states
+                'x': 'Geocodio Longitude',
+                'y': 'Geocodio Latitude'
             };
             
             // Check for geocoded coordinates
