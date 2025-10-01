@@ -1037,6 +1037,21 @@ class CommMobDataProcessor {
             return;
         }
         
+        // Validate data structure
+        if (!Array.isArray(data)) {
+            this.log(`❌ Invalid data format for ${type}`, 'error');
+            return;
+        }
+        
+        // Check if data contains objects (header: true format)
+        const firstRow = data[0];
+        if (!firstRow || typeof firstRow !== 'object') {
+            this.log(`❌ Data structure error for ${type} - expected object format`, 'error');
+            return;
+        }
+        
+        this.log(`📊 Preparing CSV with ${Object.keys(firstRow).length} columns and ${data.length} rows`, 'info');
+        
         // Add timestamp to filename for better tracking
         const now = new Date();
         const dateStr = now.toISOString().split('T')[0]; // YYYY-MM-DD format
@@ -1047,8 +1062,16 @@ class CommMobDataProcessor {
         const originalText = button.innerHTML;
         
         try {
-            // Generate CSV
-            const csv = Papa.unparse(data);
+            // Generate CSV with proper configuration
+            const csv = Papa.unparse(data, {
+                header: true,
+                delimiter: ',',
+                quotes: true,
+                quoteChar: '"',
+                escapeChar: '"',
+                skipEmptyLines: false,
+                newline: '\r\n'
+            });
             
             // Add visual feedback
             button.innerHTML = '⏳ Downloading...';
@@ -1164,7 +1187,15 @@ class CommMobDataProcessor {
     
     offerFallbackDownload(type, data) {
         // Create a text area with the CSV content as fallback
-        const csv = Papa.unparse(data);
+        const csv = Papa.unparse(data, {
+            header: true,
+            delimiter: ',',
+            quotes: true,
+            quoteChar: '"',
+            escapeChar: '"',
+            skipEmptyLines: false,
+            newline: '\r\n'
+        });
         const fallbackDiv = document.createElement('div');
         fallbackDiv.innerHTML = `
             <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 10px 0; border-radius: 5px;">
