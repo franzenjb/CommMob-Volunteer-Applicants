@@ -280,8 +280,8 @@ class CommMobDataProcessor {
         document.getElementById('before-new-volunteers-count').textContent = beforeCounts.newVolunteers;
 
         try {
-            // Create pre-processing backup
-            await this.createVersionBackup('pre-processing', beforeCounts);
+            // Temporarily disable backup creation to prevent localStorage quota errors
+            // await this.createVersionBackup('pre-processing', beforeCounts);
             
             // Process applicants data
             if (this.newApplicantsData) {
@@ -342,12 +342,12 @@ class CommMobDataProcessor {
             // Display report summary
             this.displayReportSummary();
 
-            // Create post-processing backup with final counts
-            const finalCounts = {
-                applicants: this.processedApplicantsData.length,
-                volunteers: this.processedVolunteersData.length
-            };
-            await this.createVersionBackup('post-processing', finalCounts);
+            // Temporarily disable backup creation to prevent localStorage quota errors
+            // const finalCounts = {
+            //     applicants: this.processedApplicantsData.length,
+            //     volunteers: this.processedVolunteersData.length
+            // };
+            // await this.createVersionBackup('post-processing', finalCounts);
             
             this.log('Data processing completed successfully!', 'success');
             this.log(`Final counts - Applicants: ${this.processedApplicantsData.length}, Volunteers: ${this.processedVolunteersData.length}`, 'info');
