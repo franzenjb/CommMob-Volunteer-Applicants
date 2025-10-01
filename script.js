@@ -553,11 +553,9 @@ class CommMobDataProcessor {
                 'Chapter Name': 'Chapter Name',
                 'Current Status': 'Current Status',
                 'Status Type': 'Status Type',
-                'State': 'State',  // Standard Geocodio output
-                'Zip': 'ZIP',     // Standard Geocodio output  
-                'County of Residence': 'County', // Standard Geocodio output
-                'City': 'City',   // Standard Geocodio output
-                'Country': 'Country', // Standard Geocodio output
+                'State': 'ST',  // Use ST field as in working version
+                'Zip': 'Zip Code',  // Use Zip Code as in working version
+                'County of Residence': 'County of Residence',
                 'Dis Resp': 'Dis Resp',
                 'Primary GAP': 'Primary GAP',
                 '2nd Language': '2nd Language',
@@ -572,9 +570,9 @@ class CommMobDataProcessor {
                 'Profile Last Updt': 'Profile Last Updt',
                 'Days Since Profile Updt': 'Days Since Profile Updt',
                 'ObjectId': 'RCO ID',
-                // For geocoded files, use the standard Geocodio coordinates
-                'x': 'Longitude',
-                'y': 'Latitude'
+                // For geocoded files, use the exact coordinates that worked before
+                'x': 'Geocodio Longitude',
+                'y': 'Geocodio Latitude'
             };
             
             // Check for geocoded coordinates
