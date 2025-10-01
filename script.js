@@ -358,6 +358,9 @@ class CommMobDataProcessor {
     }
 
     async createVersionBackup(stage, counts) {
+        // TEMPORARILY DISABLED: localStorage quota exceeded with large datasets
+        this.log(`⚠️ Backup creation disabled to prevent storage quota errors`, 'warning');
+        return { sessionId: 'disabled', timestamp: new Date().toISOString() };
         const timestamp = new Date();
         const dateStr = timestamp.toISOString().slice(0, 19).replace(/[T:]/g, '-');
         
@@ -511,8 +514,9 @@ class CommMobDataProcessor {
             masterVolunteers: this.masterVolunteersData?.length || 0
         };
         
-        const versionInfo = await this.createVersionBackup('manual-backup', counts);
-        this.log(`📦 Manual backup created: ${versionInfo.sessionId}`, 'success');
+        // Temporarily disable manual backup creation to prevent localStorage quota errors
+        // const versionInfo = await this.createVersionBackup('manual-backup', counts);
+        this.log(`📦 Manual backup temporarily disabled due to storage limits`, 'warning');
         
         // Refresh version history if it's currently displayed
         const historyDiv = document.getElementById('version-history');
