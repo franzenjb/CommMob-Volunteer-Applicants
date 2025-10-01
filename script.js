@@ -747,7 +747,7 @@ class CommMobDataProcessor {
                 'Services of Current Positions': 'Services of Current Positions',
                 'Current Positions': 'Current Positions',
                 'Last Hours Entry': 'Last Hours Entry**',
-                'Days since Last Hours': '',  // Calculate or leave empty
+                'Days since Last Hours': '',
                 'Last Login': 'Last Login',
                 'Days Since Last Login': 'Days Since Last Login',
                 'Profile Last Updt': 'Profile Last Updt',
