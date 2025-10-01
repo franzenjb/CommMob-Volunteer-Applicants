@@ -111,9 +111,42 @@ class CommMobDataProcessor {
 
             this.updateStatusBar();
             this.log(`Loaded ${this.masterApplicantsData.length} applicants and ${this.masterVolunteersData.length} volunteers`, 'success');
+            
+            // Enable downloads for existing master data
+            this.enableMasterDataDownloads();
+            
         } catch (error) {
             this.log(`Error loading master files: ${error.message}`, 'error');
         }
+    }
+    
+    enableMasterDataDownloads() {
+        // Set processed data to master data so downloads work immediately
+        this.processedApplicantsData = this.masterApplicantsData;
+        this.processedVolunteersData = this.masterVolunteersData;
+        
+        // Enable download buttons for existing data
+        const downloadApplicants = document.getElementById('download-applicants');
+        const downloadVolunteers = document.getElementById('download-volunteers');
+        
+        if (downloadApplicants && this.masterApplicantsData && this.masterApplicantsData.length > 0) {
+            downloadApplicants.disabled = false;
+            downloadApplicants.innerHTML = '📥 Download Current Applicants Data';
+        }
+        
+        if (downloadVolunteers && this.masterVolunteersData && this.masterVolunteersData.length > 0) {
+            downloadVolunteers.disabled = false;
+            downloadVolunteers.innerHTML = '📥 Download Current Volunteers Data';
+        }
+        
+        // Show results section with current data
+        document.getElementById('results-section').style.display = 'block';
+        
+        // Generate previews for current data
+        this.generatePreviews();
+        
+        this.log('📥 Current data is ready for download!', 'success');
+        this.log(`Current data: ${this.masterApplicantsData.length.toLocaleString()} applicants, ${this.masterVolunteersData.length.toLocaleString()} volunteers`, 'info');
     }
 
     handleFileSelect(event, type) {
