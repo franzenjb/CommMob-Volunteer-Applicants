@@ -557,7 +557,7 @@ class CommMobDataProcessor {
                 'Chapter Name': 'Chapter Name',
                 'Current Status': 'Current Status',
                 'Status Type': 'Status Type',
-                'State': 'Geocodio State',  // Use actual Geocodio state field
+                'State': 'Geocodio State',  // Use Geocodio standardized state field - CRITICAL for MA data
                 'Zip': 'Geocodio Postal Code',  // Use Geocodio postal code field
                 'County of Residence': 'Geocodio County',  // Use Geocodio county field
                 'Dis Resp': 'Dis Resp',
@@ -876,8 +876,15 @@ class CommMobDataProcessor {
                 
                 masterHeaders.forEach(masterHeader => {
                     const sourceColumn = columnMappings[masterHeader];
-                    standardizedRow[masterHeader] = sourceColumn && row[sourceColumn] !== undefined ? 
+                    const sourceValue = sourceColumn && row[sourceColumn] !== undefined ? 
                         (row[sourceColumn] || '') : '';
+                    
+                    // CRITICAL DEBUG: Log State field mapping for MA records
+                    if (masterHeader === 'State' && sourceValue === 'MA') {
+                        this.log(`✅ MA RECORD FOUND: State="${sourceValue}" from column "${sourceColumn}"`, 'success');
+                    }
+                    
+                    standardizedRow[masterHeader] = sourceValue;
                 });
                 
                 standardizedNewData.push(standardizedRow);
