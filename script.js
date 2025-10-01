@@ -8,6 +8,10 @@ class CommMobDataProcessor {
         this.processedVolunteersData = null;
         this.processingReport = null;
         
+        // Track duplicates removed for accurate reporting
+        this.applicantDuplicatesRemoved = 0;
+        this.volunteerDuplicatesRemoved = 0;
+        
         this.initializeEventListeners();
         this.loadMasterFiles();
     }
@@ -895,12 +899,20 @@ class CommMobDataProcessor {
         const combinedData = [...masterData, ...standardizedNewData];
         this.log(`Combined data count: ${combinedData.length}`, 'info');
         
-        // Skip duplicate removal to prevent data loss
-        // const deduplicatedData = this.removeDuplicates(combinedData, type);
+        // Remove duplicates to prevent data integrity issues
+        const deduplicatedData = this.removeDuplicates(combinedData, type);
+        const duplicatesRemoved = combinedData.length - deduplicatedData.length;
         
-        this.log(`Merged ${type}: ${masterData.length} + ${newData.length} = ${combinedData.length} (no duplicates removed)`, 'info');
+        this.log(`Merged ${type}: ${masterData.length} + ${newData.length} = ${deduplicatedData.length} (${duplicatesRemoved} duplicates removed)`, 'info');
         
-        return combinedData;
+        // Store duplicate count for reporting
+        if (type === 'applicants') {
+            this.applicantDuplicatesRemoved = duplicatesRemoved;
+        } else {
+            this.volunteerDuplicatesRemoved = duplicatesRemoved;
+        }
+        
+        return deduplicatedData;
     }
 
     removeDuplicates(data, type) {
@@ -1222,7 +1234,7 @@ class CommMobDataProcessor {
                 type: 'Applicants',
                 filename: document.getElementById('applicants-file').files[0]?.name || 'Unknown file',
                 newRows: this.newApplicantsData.length,
-                duplicatesRemoved: 0 // No duplicate removal
+                duplicatesRemoved: this.applicantDuplicatesRemoved || 0
             });
         }
         
@@ -1231,7 +1243,7 @@ class CommMobDataProcessor {
                 type: 'Volunteers',
                 filename: document.getElementById('volunteers-file').files[0]?.name || 'Unknown file',
                 newRows: this.newVolunteersData.length,
-                duplicatesRemoved: 0 // No duplicate removal
+                duplicatesRemoved: this.volunteerDuplicatesRemoved || 0
             });
         }
 
@@ -1241,7 +1253,7 @@ class CommMobDataProcessor {
             summary: {
                 totalFilesProcessed: filesProcessed.length,
                 totalNewRecords: filesProcessed.reduce((sum, file) => sum + file.newRows, 0),
-                totalDuplicatesRemoved: 0, // No duplicate removal
+                totalDuplicatesRemoved: (this.applicantDuplicatesRemoved || 0) + (this.volunteerDuplicatesRemoved || 0),
                 totalChaptersAssigned: chapterAssignmentStats.assignmentsMade || 0,
                 totalChaptersSkipped: chapterAssignmentStats.assignmentsSkipped || 0,
                 validationPassed: validationResult.valid
