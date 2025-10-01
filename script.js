@@ -1055,20 +1055,12 @@ class CommMobDataProcessor {
                 
                 masterHeaders.forEach(masterHeader => {
                     const sourceColumn = columnMappings[masterHeader];
-                    let sourceValue = '';
-                    
-                    if (sourceColumn && sourceColumn !== '') {
-                        sourceValue = row[sourceColumn] !== undefined ? (row[sourceColumn] || '') : '';
-                    }
+                    const sourceValue = sourceColumn && row[sourceColumn] !== undefined ? 
+                        (row[sourceColumn] || '') : '';
                     
                     // CRITICAL DEBUG: Log State field mapping for MA records
                     if (masterHeader === 'State' && sourceValue === 'MA') {
                         this.log(`✅ MA RECORD FOUND: State="${sourceValue}" from column "${sourceColumn}"`, 'success');
-                    }
-                    
-                    // DEBUG: Log field mapping issues
-                    if (masterHeader === 'State' && (!sourceColumn || sourceColumn === '')) {
-                        this.log(`⚠️ WARNING: No mapping found for State field in volunteer data`, 'warning');
                     }
                     
                     standardizedRow[masterHeader] = sourceValue;
