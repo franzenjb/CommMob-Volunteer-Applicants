@@ -530,9 +530,20 @@ class CommMobDataProcessor {
                 positionalMap['Zip'] = 'Zip Code';
             }
             
-            // Apply the mapping
+            // Apply the mapping with fallback logic for common field variations
             masterHeaders.forEach(masterHeader => {
-                mapping[masterHeader] = positionalMap[masterHeader] || '';
+                let sourceColumn = positionalMap[masterHeader];
+                
+                // Special handling for State field - try multiple variations
+                if (masterHeader === 'State' && !newHeaders.includes(sourceColumn)) {
+                    const stateVariations = ['State', 'ST', 'State/Province', 'State Province'];
+                    sourceColumn = stateVariations.find(variation => newHeaders.includes(variation)) || '';
+                    if (sourceColumn) {
+                        this.log(`Using '${sourceColumn}' for State field mapping`, 'info');
+                    }
+                }
+                
+                mapping[masterHeader] = sourceColumn || '';
             });
             
         } else if (type === 'volunteers') {
@@ -542,9 +553,11 @@ class CommMobDataProcessor {
                 'Chapter Name': 'Chapter Name',
                 'Current Status': 'Current Status',
                 'Status Type': 'Status Type',
-                'State': 'ST',
-                'Zip': 'Zip Code',
-                'County of Residence': 'County of Residence',
+                'State': 'State',  // Standard Geocodio output
+                'Zip': 'ZIP',     // Standard Geocodio output  
+                'County of Residence': 'County', // Standard Geocodio output
+                'City': 'City',   // Standard Geocodio output
+                'Country': 'Country', // Standard Geocodio output
                 'Dis Resp': 'Dis Resp',
                 'Primary GAP': 'Primary GAP',
                 '2nd Language': '2nd Language',
@@ -559,9 +572,9 @@ class CommMobDataProcessor {
                 'Profile Last Updt': 'Profile Last Updt',
                 'Days Since Profile Updt': 'Days Since Profile Updt',
                 'ObjectId': 'RCO ID',
-                // For geocoded files, use the geocoded coordinates
-                'x': 'Geocodio Longitude',
-                'y': 'Geocodio Latitude'
+                // For geocoded files, use the standard Geocodio coordinates
+                'x': 'Longitude',
+                'y': 'Latitude'
             };
             
             // Check for geocoded coordinates
