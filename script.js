@@ -41,6 +41,10 @@ class CommMobDataProcessor {
             btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
         });
         
+        // Version management
+        document.getElementById('show-version-history').addEventListener('click', () => this.toggleVersionHistory());
+        document.getElementById('create-manual-backup').addEventListener('click', () => this.createManualBackup());
+        
         // Modal functionality
         this.initializeModal();
     }
@@ -276,6 +280,9 @@ class CommMobDataProcessor {
         document.getElementById('before-new-volunteers-count').textContent = beforeCounts.newVolunteers;
 
         try {
+            // Create pre-processing backup
+            await this.createVersionBackup('pre-processing', beforeCounts);
+            
             // Process applicants data
             if (this.newApplicantsData) {
                 this.processedApplicantsData = await this.mergeData(
@@ -335,11 +342,182 @@ class CommMobDataProcessor {
             // Display report summary
             this.displayReportSummary();
 
+            // Create post-processing backup with final counts
+            const finalCounts = {
+                applicants: this.processedApplicantsData.length,
+                volunteers: this.processedVolunteersData.length
+            };
+            await this.createVersionBackup('post-processing', finalCounts);
+            
             this.log('Data processing completed successfully!', 'success');
             this.log(`Final counts - Applicants: ${this.processedApplicantsData.length}, Volunteers: ${this.processedVolunteersData.length}`, 'info');
 
         } catch (error) {
             this.log(`Error processing data: ${error.message}`, 'error');
+        }
+    }
+
+    async createVersionBackup(stage, counts) {
+        const timestamp = new Date();
+        const dateStr = timestamp.toISOString().slice(0, 19).replace(/[T:]/g, '-');
+        
+        // Determine what files are being processed
+        const filesInfo = [];
+        if (this.newApplicantsData) {
+            const filename = document.getElementById('applicants-file').files[0]?.name || 'Unknown';
+            filesInfo.push(`Applicants-${filename}`);
+        }
+        if (this.newVolunteersData) {
+            const filename = document.getElementById('volunteers-file').files[0]?.name || 'Unknown';
+            filesInfo.push(`Volunteers-${filename}`);
+        }
+        
+        const versionInfo = {
+            timestamp: timestamp,
+            dateString: dateStr,
+            stage: stage,
+            counts: counts,
+            filesProcessed: filesInfo,
+            sessionId: `VERSION_${dateStr}`,
+            description: `${stage} - ${filesInfo.join(', ')}`
+        };
+        
+        // Create backup data
+        const backupData = {
+            metadata: versionInfo,
+            applicantsData: stage === 'pre-processing' ? [...this.masterApplicantsData] : [...this.processedApplicantsData],
+            volunteersData: stage === 'pre-processing' ? [...this.masterVolunteersData] : [...this.processedVolunteersData]
+        };
+        
+        // Store in browser's local storage as backup registry
+        const existingVersions = JSON.parse(localStorage.getItem('commMobVersions') || '[]');
+        existingVersions.push(versionInfo);
+        localStorage.setItem('commMobVersions', JSON.stringify(existingVersions));
+        
+        // Store the actual backup data (keyed by sessionId)
+        localStorage.setItem(`commMobBackup_${versionInfo.sessionId}`, JSON.stringify(backupData));
+        
+        // Auto-download backup files for critical versions
+        if (stage === 'post-processing') {
+            this.downloadVersionBackup(versionInfo.sessionId, 'applicants');
+            this.downloadVersionBackup(versionInfo.sessionId, 'volunteers');
+        }
+        
+        this.log(`📦 ${stage.toUpperCase()} BACKUP CREATED: ${versionInfo.sessionId}`, 'success');
+        this.log(`   Applicants: ${counts.applicants || counts.masterApplicants || 0}, Volunteers: ${counts.volunteers || counts.masterVolunteers || 0}`, 'info');
+        this.log(`   Files: ${filesInfo.join(', ') || 'No new files'}`, 'info');
+        
+        return versionInfo;
+    }
+    
+    downloadVersionBackup(sessionId, type) {
+        try {
+            const backupData = JSON.parse(localStorage.getItem(`commMobBackup_${sessionId}`));
+            if (!backupData) return;
+            
+            const data = type === 'applicants' ? backupData.applicantsData : backupData.volunteersData;
+            const metadata = backupData.metadata;
+            
+            const csvContent = Papa.unparse(data);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${type}_BACKUP_${metadata.dateString}_${metadata.stage}.csv`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            
+            this.log(`📁 Downloaded backup: ${link.download}`, 'info');
+        } catch (error) {
+            this.log(`Error downloading backup: ${error.message}`, 'error');
+        }
+    }
+    
+    getVersionHistory() {
+        return JSON.parse(localStorage.getItem('commMobVersions') || '[]');
+    }
+    
+    restoreFromVersion(sessionId) {
+        try {
+            const backupData = JSON.parse(localStorage.getItem(`commMobBackup_${sessionId}`));
+            if (!backupData) {
+                this.log(`Backup not found: ${sessionId}`, 'error');
+                return false;
+            }
+            
+            this.masterApplicantsData = [...backupData.applicantsData];
+            this.masterVolunteersData = [...backupData.volunteersData];
+            
+            this.log(`🔄 RESTORED from backup: ${sessionId}`, 'success');
+            this.log(`   Applicants: ${this.masterApplicantsData.length}, Volunteers: ${this.masterVolunteersData.length}`, 'info');
+            
+            // Update displays
+            this.updateCountDisplays();
+            this.generatePreviews();
+            
+            return true;
+        } catch (error) {
+            this.log(`Error restoring backup: ${error.message}`, 'error');
+            return false;
+        }
+    }
+    
+    toggleVersionHistory() {
+        const historyDiv = document.getElementById('version-history');
+        const isVisible = historyDiv.style.display !== 'none';
+        
+        if (isVisible) {
+            historyDiv.style.display = 'none';
+        } else {
+            this.displayVersionHistory();
+            historyDiv.style.display = 'block';
+        }
+    }
+    
+    displayVersionHistory() {
+        const versions = this.getVersionHistory();
+        const listDiv = document.getElementById('version-list');
+        
+        if (versions.length === 0) {
+            listDiv.innerHTML = '<p class="no-versions">No version history available</p>';
+            return;
+        }
+        
+        listDiv.innerHTML = versions.reverse().map(version => `
+            <div class="version-item">
+                <div class="version-header">
+                    <strong>${version.sessionId}</strong>
+                    <span class="version-date">${new Date(version.timestamp).toLocaleString()}</span>
+                </div>
+                <div class="version-details">
+                    <div>Stage: ${version.stage}</div>
+                    <div>Files: ${version.filesProcessed.join(', ') || 'None'}</div>
+                    <div>Counts: Applicants ${version.counts.applicants || version.counts.masterApplicants || 0}, Volunteers ${version.counts.volunteers || version.counts.masterVolunteers || 0}</div>
+                </div>
+                <div class="version-actions">
+                    <button onclick="dataProcessor.downloadVersionBackup('${version.sessionId}', 'applicants')" class="version-action-btn">📄 Download Applicants</button>
+                    <button onclick="dataProcessor.downloadVersionBackup('${version.sessionId}', 'volunteers')" class="version-action-btn">👥 Download Volunteers</button>
+                    <button onclick="dataProcessor.restoreFromVersion('${version.sessionId}')" class="version-action-btn restore-btn">🔄 Restore</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    async createManualBackup() {
+        const counts = {
+            masterApplicants: this.masterApplicantsData?.length || 0,
+            masterVolunteers: this.masterVolunteersData?.length || 0
+        };
+        
+        const versionInfo = await this.createVersionBackup('manual-backup', counts);
+        this.log(`📦 Manual backup created: ${versionInfo.sessionId}`, 'success');
+        
+        // Refresh version history if it's currently displayed
+        const historyDiv = document.getElementById('version-history');
+        if (historyDiv.style.display !== 'none') {
+            this.displayVersionHistory();
         }
     }
 
