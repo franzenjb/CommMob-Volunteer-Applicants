@@ -1062,16 +1062,8 @@ class CommMobDataProcessor {
         const originalText = button.innerHTML;
         
         try {
-            // Generate CSV with proper configuration
-            const csv = Papa.unparse(data, {
-                header: true,
-                delimiter: ',',
-                quotes: true,
-                quoteChar: '"',
-                escapeChar: '"',
-                skipEmptyLines: false,
-                newline: '\r\n'
-            });
+            // Generate CSV (keep it simple like the working version)
+            const csv = Papa.unparse(data);
             
             // Add visual feedback
             button.innerHTML = '⏳ Downloading...';
@@ -1084,7 +1076,7 @@ class CommMobDataProcessor {
             }
             
             // Method 2: Enhanced blob download with better browser compatibility
-            const blob = new Blob(['\ufeff' + csv], { 
+            const blob = new Blob([csv], { 
                 type: 'text/csv;charset=utf-8;' 
             });
             
@@ -1187,15 +1179,7 @@ class CommMobDataProcessor {
     
     offerFallbackDownload(type, data) {
         // Create a text area with the CSV content as fallback
-        const csv = Papa.unparse(data, {
-            header: true,
-            delimiter: ',',
-            quotes: true,
-            quoteChar: '"',
-            escapeChar: '"',
-            skipEmptyLines: false,
-            newline: '\r\n'
-        });
+        const csv = Papa.unparse(data);
         const fallbackDiv = document.createElement('div');
         fallbackDiv.innerHTML = `
             <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 10px 0; border-radius: 5px;">
