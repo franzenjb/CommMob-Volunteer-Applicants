@@ -553,9 +553,9 @@ class CommMobDataProcessor {
                 'Chapter Name': 'Chapter Name',
                 'Current Status': 'Current Status',
                 'Status Type': 'Status Type',
-                'State': 'ST',  // Use ST field as in working version
-                'Zip': 'Zip Code',  // Use Zip Code as in working version
-                'County of Residence': 'County of Residence',
+                'State': 'Geocodio State',  // Use actual Geocodio state field
+                'Zip': 'Geocodio Postal Code',  // Use Geocodio postal code field
+                'County of Residence': 'Geocodio County',  // Use Geocodio county field
                 'Dis Resp': 'Dis Resp',
                 'Primary GAP': 'Primary GAP',
                 '2nd Language': '2nd Language',
