@@ -357,58 +357,60 @@ class CommMobDataProcessor {
         }
     }
 
+
     async createVersionBackup(stage, counts) {
-        // TEMPORARILY DISABLED: localStorage quota exceeded with large datasets
-        this.log(`⚠️ Backup creation disabled to prevent storage quota errors`, 'warning');
         return { sessionId: 'disabled', timestamp: new Date().toISOString() };
-        const timestamp = new Date();
-        const dateStr = timestamp.toISOString().slice(0, 19).replace(/[T:]/g, '-');
-        
-        // Determine what files are being processed
-        const filesInfo = [];
-        if (this.newApplicantsData) {
-            const filename = document.getElementById('applicants-file').files[0]?.name || 'Unknown';
-            filesInfo.push(`Applicants-${filename}`);
-        }
-        if (this.newVolunteersData) {
-            const filename = document.getElementById('volunteers-file').files[0]?.name || 'Unknown';
-            filesInfo.push(`Volunteers-${filename}`);
-        }
-        
-        const versionInfo = {
-            timestamp: timestamp,
-            dateString: dateStr,
-            stage: stage,
-            counts: counts,
-            filesProcessed: filesInfo,
-            sessionId: `VERSION_${dateStr}`,
-            description: `${stage} - ${filesInfo.join(', ')}`
-        };
-        
-        // Create backup data
-        const backupData = {
-            metadata: versionInfo,
-            applicantsData: stage === 'pre-processing' ? [...this.masterApplicantsData] : [...this.processedApplicantsData],
-            volunteersData: stage === 'pre-processing' ? [...this.masterVolunteersData] : [...this.processedVolunteersData]
-        };
-        
-        // Store in browser's local storage as backup registry
-        const existingVersions = JSON.parse(localStorage.getItem('commMobVersions') || '[]');
-        existingVersions.push(versionInfo);
-        localStorage.setItem('commMobVersions', JSON.stringify(existingVersions));
-        
-        // Store the actual backup data (keyed by sessionId)
-        localStorage.setItem(`commMobBackup_${versionInfo.sessionId}`, JSON.stringify(backupData));
-        
-        // Auto-download backup files for critical versions
-        if (stage === 'post-processing') {
-            this.downloadVersionBackup(versionInfo.sessionId, 'applicants');
-            this.downloadVersionBackup(versionInfo.sessionId, 'volunteers');
-        }
-        
-        this.log(`📦 ${stage.toUpperCase()} BACKUP CREATED: ${versionInfo.sessionId}`, 'success');
-        this.log(`   Applicants: ${counts.applicants || counts.masterApplicants || 0}, Volunteers: ${counts.volunteers || counts.masterVolunteers || 0}`, 'info');
-        this.log(`   Files: ${filesInfo.join(', ') || 'No new files'}`, 'info');
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         
         return versionInfo;
     }
