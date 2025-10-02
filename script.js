@@ -411,9 +411,6 @@ class CommMobDataProcessor {
 
 
 
-        
-        return versionInfo;
-    }
     
     downloadVersionBackup(sessionId, type) {
         try {
