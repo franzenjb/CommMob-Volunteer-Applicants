@@ -359,6 +359,7 @@ class CommMobDataProcessor {
 
 
     async createVersionBackup(stage, counts) {
+        // Cache bust: v2
         return { sessionId: 'disabled', timestamp: new Date().toISOString() };
     }
 
