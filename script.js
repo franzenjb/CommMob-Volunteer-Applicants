@@ -263,15 +263,25 @@ class CommMobDataProcessor {
     }
 
     async processData() {
-        this.log('Starting data processing...', 'info');
+        this.log('🚨 ULTRA-CRITICAL PROCESSING: Starting comprehensive safety validation...', 'info');
         
-        // Store before counts
+        // CHECKPOINT 1: PRE-PROCESSING VALIDATION
         const beforeCounts = {
             masterApplicants: this.masterApplicantsData.length,
             masterVolunteers: this.masterVolunteersData.length,
             newApplicants: this.newApplicantsData ? this.newApplicantsData.length : 0,
             newVolunteers: this.newVolunteersData ? this.newVolunteersData.length : 0
         };
+        
+        // CRITICAL: Validate pre-processing state
+        this.log('🔍 CHECKPOINT 1: Pre-processing validation...', 'info');
+        const preValidation = this.validatePreProcessing(beforeCounts);
+        if (!preValidation.valid) {
+            this.log('🚨 CRITICAL ERROR: Pre-processing validation failed!', 'error');
+            this.log(`❌ ${preValidation.errors.join(', ')}`, 'error');
+            return;
+        }
+        this.log('✅ CHECKPOINT 1: Pre-processing validation PASSED', 'success');
 
         // Update before counts display
         document.getElementById('before-applicants-count').textContent = beforeCounts.masterApplicants;
@@ -307,6 +317,36 @@ class CommMobDataProcessor {
 
             // Validate the results
             const validationResult = this.validateResults(beforeCounts);
+
+            // CHECKPOINT 2: POST-PROCESSING VERIFICATION
+            this.log('🔍 CHECKPOINT 2: Post-processing verification...', 'info');
+            const afterCounts = {
+                processedApplicants: this.processedApplicantsData.length,
+                processedVolunteers: this.processedVolunteersData.length
+            };
+            
+            const postValidation = this.validatePostProcessing(beforeCounts, afterCounts);
+            if (!postValidation.valid) {
+                this.log('🚨 CRITICAL ERROR: Post-processing validation failed!', 'error');
+                this.log(`❌ ${postValidation.errors.join(', ')}`, 'error');
+                this.log('🔄 EMERGENCY ROLLBACK: Reverting to original data...', 'warning');
+                // Emergency rollback
+                this.processedApplicantsData = [...this.masterApplicantsData];
+                this.processedVolunteersData = [...this.masterVolunteersData];
+                return;
+            }
+            this.log('✅ CHECKPOINT 2: Post-processing verification PASSED', 'success');
+            
+            // CHECKPOINT 3: FINAL SAFETY VALIDATION
+            this.log('🔍 CHECKPOINT 3: Final safety validation...', 'info');
+            const finalValidation = this.validateFinalSafety(beforeCounts, afterCounts);
+            if (!finalValidation.valid) {
+                this.log('🚨 CATASTROPHIC ERROR: Final safety validation failed!', 'error');
+                this.log(`❌ ${finalValidation.errors.join(', ')}`, 'error');
+                return;
+            }
+            this.log('✅ CHECKPOINT 3: Final safety validation PASSED', 'success');
+            this.log('🎉 ALL SAFETY CHECKPOINTS PASSED - Processing completed successfully!', 'success');
 
             // Update after counts display
             document.getElementById('after-applicants-count').textContent = this.processedApplicantsData.length;
@@ -786,6 +826,141 @@ class CommMobDataProcessor {
         }
         
         return mapping;
+    }
+
+    /**
+     * ULTRA-CRITICAL: Pre-processing validation
+     * Prevents catastrophic failures before processing starts
+     */
+    validatePreProcessing(beforeCounts) {
+        const errors = [];
+        
+        // Validate master file integrity
+        if (beforeCounts.masterApplicants < 70000) {
+            errors.push(`Master applicants count (${beforeCounts.masterApplicants}) is suspiciously low - expected >70,000`);
+        }
+        if (beforeCounts.masterVolunteers < 40000) {
+            errors.push(`Master volunteers count (${beforeCounts.masterVolunteers}) is suspiciously low - expected >40,000`);
+        }
+        
+        // Validate new data makes sense
+        if (beforeCounts.newApplicants > 10000) {
+            errors.push(`New applicants count (${beforeCounts.newApplicants}) is suspiciously high - verify file`);
+        }
+        if (beforeCounts.newVolunteers > 10000) {
+            errors.push(`New volunteers count (${beforeCounts.newVolunteers}) is suspiciously high - verify file`);
+        }
+        
+        // Validate we have data to process
+        if (beforeCounts.newApplicants === 0 && beforeCounts.newVolunteers === 0) {
+            errors.push('No new data to process - both applicants and volunteers are 0');
+        }
+        
+        this.log(`📊 PRE-PROCESSING STATE: Master: ${beforeCounts.masterApplicants} applicants, ${beforeCounts.masterVolunteers} volunteers`, 'info');
+        this.log(`📊 NEW DATA: ${beforeCounts.newApplicants} applicants, ${beforeCounts.newVolunteers} volunteers`, 'info');
+        
+        return { valid: errors.length === 0, errors };
+    }
+
+    /**
+     * ULTRA-CRITICAL: Post-processing verification
+     * Ensures both files were updated correctly
+     */
+    validatePostProcessing(beforeCounts, afterCounts) {
+        const errors = [];
+        
+        // CRITICAL: Check if both files were updated when both should be
+        const expectedApplicants = beforeCounts.masterApplicants + beforeCounts.newApplicants;
+        const expectedVolunteers = beforeCounts.masterVolunteers + beforeCounts.newVolunteers;
+        
+        // Validate applicant processing
+        if (beforeCounts.newApplicants > 0) {
+            if (afterCounts.processedApplicants !== expectedApplicants) {
+                errors.push(`APPLICANTS MISMATCH: Expected ${expectedApplicants}, got ${afterCounts.processedApplicants}`);
+            }
+            if (afterCounts.processedApplicants <= beforeCounts.masterApplicants) {
+                errors.push(`APPLICANTS NOT INCREASED: Count didn't increase from ${beforeCounts.masterApplicants}`);
+            }
+        }
+        
+        // Validate volunteer processing
+        if (beforeCounts.newVolunteers > 0) {
+            if (afterCounts.processedVolunteers !== expectedVolunteers) {
+                errors.push(`VOLUNTEERS MISMATCH: Expected ${expectedVolunteers}, got ${afterCounts.processedVolunteers}`);
+            }
+            if (afterCounts.processedVolunteers <= beforeCounts.masterVolunteers) {
+                errors.push(`VOLUNTEERS NOT INCREASED: Count didn't increase from ${beforeCounts.masterVolunteers}`);
+            }
+        }
+        
+        // CATASTROPHIC CHECK: Both files must be updated if both have new data
+        if (beforeCounts.newApplicants > 0 && beforeCounts.newVolunteers > 0) {
+            if (afterCounts.processedApplicants === beforeCounts.masterApplicants) {
+                errors.push('CATASTROPHIC: Applicants file was NOT updated despite having new applicant data');
+            }
+            if (afterCounts.processedVolunteers === beforeCounts.masterVolunteers) {
+                errors.push('CATASTROPHIC: Volunteers file was NOT updated despite having new volunteer data');
+            }
+        }
+        
+        this.log(`📊 POST-PROCESSING RESULT: ${afterCounts.processedApplicants} applicants (+${afterCounts.processedApplicants - beforeCounts.masterApplicants})`, 'info');
+        this.log(`📊 POST-PROCESSING RESULT: ${afterCounts.processedVolunteers} volunteers (+${afterCounts.processedVolunteers - beforeCounts.masterVolunteers})`, 'info');
+        
+        return { valid: errors.length === 0, errors };
+    }
+
+    /**
+     * ULTRA-CRITICAL: Final safety validation
+     * Last line of defense before committing changes
+     */
+    validateFinalSafety(beforeCounts, afterCounts) {
+        const errors = [];
+        
+        // Sanity checks - totals should never decrease
+        if (afterCounts.processedApplicants < beforeCounts.masterApplicants) {
+            errors.push('CATASTROPHIC: Applicant count DECREASED - data corruption detected');
+        }
+        if (afterCounts.processedVolunteers < beforeCounts.masterVolunteers) {
+            errors.push('CATASTROPHIC: Volunteer count DECREASED - data corruption detected');
+        }
+        
+        // Check for reasonable increases
+        const applicantIncrease = afterCounts.processedApplicants - beforeCounts.masterApplicants;
+        const volunteerIncrease = afterCounts.processedVolunteers - beforeCounts.masterVolunteers;
+        
+        if (applicantIncrease > 20000) {
+            errors.push(`SUSPICIOUS: Applicant increase (${applicantIncrease}) is extremely large`);
+        }
+        if (volunteerIncrease > 20000) {
+            errors.push(`SUSPICIOUS: Volunteer increase (${volunteerIncrease}) is extremely large`);
+        }
+        
+        // Validate data structure integrity
+        if (this.processedApplicantsData.length === 0) {
+            errors.push('CATASTROPHIC: Processed applicants data is empty');
+        }
+        if (this.processedVolunteersData.length === 0) {
+            errors.push('CATASTROPHIC: Processed volunteers data is empty');
+        }
+        
+        // Check for required fields in processed data
+        if (this.processedApplicantsData.length > 0) {
+            const firstApplicant = this.processedApplicantsData[0];
+            if (!firstApplicant.hasOwnProperty('State') || !firstApplicant.hasOwnProperty('x') || !firstApplicant.hasOwnProperty('y')) {
+                errors.push('STRUCTURE ERROR: Processed applicants missing required fields (State, x, y)');
+            }
+        }
+        
+        if (this.processedVolunteersData.length > 0) {
+            const firstVolunteer = this.processedVolunteersData[0];
+            if (!firstVolunteer.hasOwnProperty('State') || !firstVolunteer.hasOwnProperty('x') || !firstVolunteer.hasOwnProperty('y')) {
+                errors.push('STRUCTURE ERROR: Processed volunteers missing required fields (State, x, y)');
+            }
+        }
+        
+        this.log(`🛡️ FINAL SAFETY CHECK: All validations completed`, 'info');
+        
+        return { valid: errors.length === 0, errors };
     }
 
     /**
