@@ -55,6 +55,56 @@
 
 **Future state uploads (Ohio, Kansas, New York) will work identically using the same Geocodio field mapping.**
 
+## 📊 **REFERENCE TOTALS FOR VALIDATION**
+
+### **Known Good Database Counts**
+
+Use these totals to verify successful processing:
+
+| **Stage** | **Volunteers** | **Applicants** | **Notes** |
+|-----------|---------------|----------------|-----------|
+| **Baseline (Pre-MA)** | 48,602 | 76,641 | Original multi-state database |
+| **Post-Massachusetts** | 54,709 | 76,641 | Added 6,108 MA volunteers |
+| **Post-Nebraska + Iowa** | 58,107 | 80,204 | Added 1,776 NE + 1,507 IA volunteers + 4,563 NEIA applicants |
+
+### **State-by-State Additions**
+
+| **State** | **Volunteers Added** | **Applicants Added** | **Processing Date** | **File Type** |
+|-----------|---------------------|---------------------|-------------------|---------------|
+| **Massachusetts** | 6,108 | 0 | Oct 2024 | Volunteer Member Listing |
+| **Nebraska** | 1,776 | ~2,300 | Oct 2024 | NEIA Combined Export |
+| **Iowa** | 1,507 | ~2,200 | Oct 2024 | NEIA Combined Export |
+
+### **Validation Checkpoints**
+
+**Before adding any new state:**
+1. Record current totals from application status bar
+2. Note the number of new records in upload file
+3. Calculate expected final totals
+
+**After processing:**
+1. Verify "Updated" totals match calculations
+2. Download processed files and spot-check coordinates
+3. Confirm state abbreviations are correct (MA, NE, IA, etc.)
+4. Update master files in FINAL CSV folder
+5. Commit updated master files to GitHub for future sessions
+
+### **Critical Success Indicators**
+
+✅ **Volunteer totals INCREASE** (never decrease)  
+✅ **Coordinates preserved** (x,y fields populated)  
+✅ **State fields standardized** (MA, NE, IA format)  
+✅ **Chapter assignments maintained**  
+✅ **No duplicate ObjectIds introduced**
+
+### **Emergency Recovery**
+
+If processing fails or corrupts data:
+1. **Check FINAL CSV folder** for last good master files
+2. **Restore from git history** if needed: `git log --oneline`
+3. **Re-process from geocoded source files** (always keep originals)
+4. **Verify field mapping** matches Geocodio output structure
+
 ## 🚨 **CRITICAL: READ THIS FIRST BEFORE USING THE APPLICATION**
 
 ### **⚠️ MANDATORY PREPROCESSING STEPS - APPLICATION WILL FAIL WITHOUT THESE:**
