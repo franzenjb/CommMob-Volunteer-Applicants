@@ -844,10 +844,10 @@ class CommMobDataProcessor {
         }
         
         // Validate new data makes sense
-        if (beforeCounts.newApplicants > 10000) {
+        if (beforeCounts.newApplicants > 20000) {
             errors.push(`New applicants count (${beforeCounts.newApplicants}) is suspiciously high - verify file`);
         }
-        if (beforeCounts.newVolunteers > 10000) {
+        if (beforeCounts.newVolunteers > 20000) {
             errors.push(`New volunteers count (${beforeCounts.newVolunteers}) is suspiciously high - verify file`);
         }
         
